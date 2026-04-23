@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Casino Tutorial — Craps & Blackjack</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --felt: #1a5c3a; --felt-dark: #103d27; --felt-light: #236b45;
+  --gold: #c9a84c; --gold-light: #e8c97a; --gold-dark: #8c6b1f;
+  --ivory: #f5f0e1; --ivory-dim: #d9d0b8;
+  --chip-red:#c0392b; --chip-blue:#2874a6; --chip-green:#1e8449; --chip-black:#1a1a2e;
+  --card-bg: #fdf8ef;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:#0a0a0a;
+  background-image:radial-gradient(ellipse at 15% 15%,#1a0800 0%,transparent 55%),
+    radial-gradient(ellipse at 85% 85%,#001208 0%,transparent 55%),
+    repeating-linear-gradient(45deg,transparent,transparent 38px,rgba(255,255,255,0.008) 38px,rgba(255,255,255,0.008) 39px);
+  min-height:100vh; font-family:'Crimson Pro',serif; color:var(--ivory); overflow-x:hidden;
+}
+
+/* ── HEADER ── */
+header{text-align:center;padding:2rem 1rem 0.5rem;position:relative}
+header::before,header::after{content:'';display:block;width:55%;max-width:420px;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:0 auto}
+header::before{margin-bottom:1rem} header::after{margin-top:1rem}
+header h1{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,5vw,3.6rem);font-weight:900;
+  letter-spacing:0.14em;color:var(--gold-light);
+  text-shadow:0 0 40px rgba(201,168,76,0.45),2px 2px 0 var(--gold-dark)}
+header p{font-size:1.5rem;color:var(--ivory-dim);font-style:italic;margin-top:0.3rem}
+
+/* ── GAME SWITCHER ── */
+.game-switcher{display:flex;justify-content:center;gap:0;margin:1.2rem auto 0;
+  max-width:340px;border:1px solid var(--gold-dark);border-radius:3px;overflow:hidden}
+.game-tab{flex:1;padding:0.65rem 1rem;text-align:center;cursor:pointer;
+  font-family:'Playfair Display',serif;font-size:1.2rem;letter-spacing:0.1em;
+  color:var(--ivory-dim);background:rgba(0,0,0,0.4);border:none;transition:all 0.2s}
+.game-tab:first-child{border-right:1px solid var(--gold-dark)}
+.game-tab.active{background:var(--gold);color:#000;font-weight:700}
+.game-tab:hover:not(.active){background:rgba(201,168,76,0.1);color:var(--gold-light)}
+
+.casino-floor{max-width:1100px;margin:0 auto;padding:1rem 1rem 3rem}
+
+/* ── GAME PANELS ── */
+.game-panel{display:none} .game-panel.active{display:block}
+
+/* ── TUTORIAL PANEL ── */
+.tutorial-panel{background:linear-gradient(135deg,#1a1200,#0d0d0d);
+  border:1px solid var(--gold-dark);border-radius:4px;padding:1.2rem 1.5rem;
+  margin-bottom:1.2rem;position:relative}
+.tutorial-panel::before{content:'';position:absolute;inset:3px;
+  border:1px solid rgba(201,168,76,0.12);border-radius:3px;pointer-events:none}
+.tutorial-panel h2{font-family:'Playfair Display',serif;color:var(--gold-light);
+  font-size:1.85rem;margin-bottom:0.5rem;letter-spacing:0.05em}
+.tutorial-panel p{line-height:1.7;color:var(--ivory);font-size:1.35rem}
+
+/* ── STRATEGY BOX (live, per-turn) ── */
+.strategy-box{background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.35);
+  border-radius:4px;padding:0.8rem 1rem;margin-top:0.8rem;transition:all 0.3s}
+.strategy-box-label{font-size:0.95rem;text-transform:uppercase;letter-spacing:0.15em;
+  color:var(--gold);margin-bottom:0.3rem;font-family:'Playfair Display',serif}
+.strategy-box p{font-size:1.25rem;color:var(--ivory-dim);line-height:1.6;font-style:italic}
+.strategy-box.suggest-good{border-color:#4caf50;background:rgba(76,175,80,0.07)}
+.strategy-box.suggest-caution{border-color:#ff9800;background:rgba(255,152,0,0.07)}
+.strategy-box.suggest-danger{border-color:#f44336;background:rgba(244,67,54,0.07)}
+
+/* ── STEPS NAV ── */
+.steps-nav{display:flex;justify-content:center;gap:0.4rem;flex-wrap:wrap;margin-bottom:1rem}
+.step-btn{background:none;border:1px solid var(--gold-dark);color:var(--ivory-dim);
+  padding:0.45rem 1rem;border-radius:2px;font-family:'Playfair Display',serif;
+  font-size:1rem;letter-spacing:0.07em;cursor:pointer;transition:all 0.2s}
+.step-btn:hover{border-color:var(--gold);color:var(--gold)}
+.step-btn.active{background:var(--gold);border-color:var(--gold);color:#000;font-weight:700}
+
+/* ══════════════════════════════════
+   CRAPS TABLE
+══════════════════════════════════ */
+.table-wrapper{background:var(--felt-dark);border:8px solid #5a3a10;border-radius:16px;
+  box-shadow:0 0 0 2px var(--gold-dark),0 0 0 4px #2a1a05,0 20px 60px rgba(0,0,0,0.8),
+  inset 0 2px 4px rgba(255,255,255,0.05);padding:10px;margin-bottom:1.2rem;
+  position:relative;overflow:hidden}
+.table-wrapper::after{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,0.04) 0%,transparent 70%);
+  pointer-events:none}
+.craps-table{display:grid;grid-template-columns:1fr;gap:4px;font-family:'Playfair Display',serif;user-select:none}
+.row-pass{display:grid;grid-template-columns:1fr 0.6fr 1fr 0.6fr;gap:4px}
+.row-numbers{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.row-field-place{display:grid;grid-template-columns:1fr 2fr;gap:4px}
+.row-props{display:grid;grid-template-columns:0.5fr 0.5fr 1fr 1fr 1fr;gap:4px}
+.bet-zone{background:var(--felt);border:1.5px solid rgba(201,168,76,0.35);border-radius:4px;
+  padding:7px 5px;text-align:center;cursor:pointer;transition:all 0.18s;position:relative;
+  min-height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.bet-zone:hover{background:var(--felt-light);border-color:var(--gold);box-shadow:0 0 10px rgba(201,168,76,0.3)}
+.bet-zone.highlighted{border-color:var(--gold-light)!important;box-shadow:0 0 16px rgba(201,168,76,0.6)!important;animation:pulse 1.2s ease-in-out infinite}
+.bet-zone.win-flash{background:#1a4a1a!important;border-color:#4caf50!important;box-shadow:0 0 20px rgba(76,175,80,0.8)!important}
+.bet-zone.lose-flash{background:#4a1a1a!important;border-color:#f44336!important;box-shadow:0 0 20px rgba(244,67,54,0.8)!important}
+@keyframes pulse{0%,100%{box-shadow:0 0 8px rgba(201,168,76,0.4)}50%{box-shadow:0 0 22px rgba(201,168,76,0.9)}}
+.bet-label{font-size:clamp(0.7rem,1.6vw,1rem);color:var(--ivory);letter-spacing:0.06em;text-transform:uppercase;line-height:1.2}
+.bet-label.large{font-size:clamp(1rem,2.2vw,1.35rem);font-weight:700}
+.bet-label.odds{font-size:clamp(0.6rem,1.2vw,0.82rem);color:var(--ivory-dim);margin-top:2px}
+.number-label{font-size:clamp(1.3rem,3.2vw,2rem);font-weight:700;color:var(--gold-light);line-height:1}
+.chip-stack{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;margin-top:3px}
+.chip-token{width:20px;height:20px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);
+  display:flex;align-items:center;justify-content:center;font-size:0.48rem;font-weight:700;
+  font-family:'Playfair Display',serif;box-shadow:0 2px 4px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.2);color:white}
+.chip-token.c5{background:var(--chip-red)}.chip-token.c10{background:var(--chip-blue)}
+.chip-token.c25{background:var(--chip-green)}.chip-token.c100{background:var(--chip-black)}
+.puck{width:28px;height:28px;border-radius:50%;border:3px solid #333;display:flex;
+  align-items:center;justify-content:center;font-size:0.5rem;font-weight:900;
+  font-family:'Playfair Display',serif;position:absolute;top:3px;right:3px;
+  transition:all 0.4s;z-index:10;pointer-events:none;letter-spacing:0.05em}
+.puck.off{background:#222;color:#888;border-color:#555}.puck.on{background:#f5f0e1;color:#111;border-color:#ccc}
+
+/* ── DICE ── */
+.dice-area{display:flex;align-items:center;justify-content:center;gap:1.2rem;padding:0.8rem 0;margin-bottom:1rem}
+.die{width:56px;height:56px;background:var(--ivory);border-radius:10px;
+  box-shadow:3px 3px 0 #aaa,0 4px 12px rgba(0,0,0,0.6);
+  display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:7px;gap:3px;transition:transform 0.1s}
+.die.rolling{animation:shake 0.5s ease-in-out}
+@keyframes shake{0%,100%{transform:rotate(0deg) scale(1)}20%{transform:rotate(-15deg) scale(1.1)}40%{transform:rotate(12deg) scale(0.95)}60%{transform:rotate(-8deg) scale(1.05)}80%{transform:rotate(5deg) scale(0.98)}}
+.pip{background:#1a1a1a;border-radius:50%;visibility:hidden}.pip.show{visibility:visible}
+.roll-result{text-align:center;font-family:'Playfair Display',serif}
+.roll-result .total{font-size:3rem;font-weight:900;color:var(--gold-light);text-shadow:0 0 20px rgba(201,168,76,0.5);line-height:1}
+.roll-result .outcome{font-size:1.25rem;color:var(--ivory-dim);font-style:italic;min-height:1.3em}
+.outcome.natural{color:#4caf50;font-weight:700}.outcome.craps-out{color:#f44336;font-weight:700}
+.outcome.point-set{color:var(--gold)}.outcome.seven-out{color:#f44336;font-weight:700}.outcome.point-win{color:#4caf50;font-weight:700}
+
+/* ══════════════════════════════════
+   BLACKJACK TABLE
+══════════════════════════════════ */
+.bj-table{background:var(--felt-dark);border:8px solid #5a3a10;border-radius:50% / 30%;
+  box-shadow:0 0 0 2px var(--gold-dark),0 0 0 4px #2a1a05,0 20px 60px rgba(0,0,0,0.8);
+  padding:2rem 2.5rem 1.5rem;margin-bottom:1.2rem;position:relative;min-height:300px;
+  display:flex;flex-direction:column;align-items:center;gap:1rem;overflow:hidden}
+.bj-table::before{content:'BLACKJACK PAYS 3 TO 2 · DEALER MUST HIT SOFT 17';
+  font-family:'Playfair Display',serif;font-size:0.65rem;letter-spacing:0.2em;
+  color:rgba(201,168,76,0.4);text-align:center;margin-bottom:0.3rem}
+.bj-table::after{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 20%,rgba(255,255,255,0.03) 0%,transparent 65%);pointer-events:none}
+
+.bj-section-label{font-family:'Playfair Display',serif;font-size:0.95rem;letter-spacing:0.2em;
+  color:rgba(201,168,76,0.5);text-transform:uppercase;text-align:center}
+
+/* Card rendering */
+.hand-area{display:flex;gap:0.8rem;justify-content:center;align-items:flex-start;flex-wrap:wrap;min-height:130px}
+.card{width:90px;height:130px;background:var(--card-bg);border-radius:9px;
+  border:2px solid #ddd;box-shadow:3px 3px 8px rgba(0,0,0,0.5),inset 0 0 0 3px rgba(0,0,0,0.04);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:'Playfair Display',serif;font-weight:700;font-size:1.6rem;
+  position:relative;transition:transform 0.3s,opacity 0.3s;user-select:none}
+.card.deal-in{animation:dealIn 0.35s ease-out}
+@keyframes dealIn{from{transform:translateY(-30px) scale(0.8);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+.card.red{color:#c0392b}.card.black{color:#111}.card.face-down{background:#1a3a6a;color:transparent;border-color:#1a3a6a}
+.card.face-down::after{content:'🂠';font-size:2.8rem;color:rgba(255,255,255,0.15);position:absolute}
+.card-corner{position:absolute;top:5px;left:7px;font-size:1rem;line-height:1.15;text-align:center}
+.card-corner-br{position:absolute;bottom:5px;right:7px;font-size:1rem;line-height:1.15;text-align:center;transform:rotate(180deg)}
+.card-suit{font-size:2rem;line-height:1}
+.hand-value{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:var(--gold-light);text-align:center;min-height:1.5em}
+.bust-label{color:#f44336}.bj-label{color:#4caf50}
+
+/* BJ Bet zone */
+.bj-bet-circle{width:100px;height:100px;border-radius:50%;border:2px dashed rgba(201,168,76,0.5);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;
+  transition:all 0.2s;font-family:'Playfair Display',serif;color:rgba(201,168,76,0.5);
+  font-size:1rem;letter-spacing:0.1em;text-transform:uppercase;position:relative}
+.bj-bet-circle:hover{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,0.05)}
+.bj-bet-circle .chip-stack{position:absolute;inset:0;display:flex;flex-wrap:wrap;
+  align-items:center;justify-content:center;gap:3px;pointer-events:none}
+.bj-insurance-zone{background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.25);
+  border-radius:20px;padding:0.5rem 1.4rem;cursor:pointer;font-family:'Playfair Display',serif;
+  font-size:1rem;color:var(--ivory-dim);letter-spacing:0.1em;text-align:center;transition:all 0.2s}
+.bj-insurance-zone:hover{border-color:var(--gold);color:var(--gold)}
+
+/* BJ action buttons */
+.bj-actions{display:flex;gap:0.6rem;flex-wrap:wrap;justify-content:center;margin-top:0.5rem}
+.bj-btn{padding:0.7rem 1.5rem;font-family:'Playfair Display',serif;font-size:1.15rem;
+  letter-spacing:0.08em;border-radius:3px;cursor:pointer;border:none;transition:all 0.18s;text-transform:uppercase}
+.bj-btn:disabled{opacity:0.3;cursor:not-allowed}
+.bj-btn-deal{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#000;font-weight:900;
+  box-shadow:0 4px 12px rgba(201,168,76,0.4)}
+.bj-btn-deal:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 20px rgba(201,168,76,0.5)}
+.bj-btn-hit{background:linear-gradient(135deg,#1e8449,#145a32);color:#fff;font-weight:700}
+.bj-btn-hit:hover:not(:disabled){background:linear-gradient(135deg,#27ae60,#1e8449)}
+.bj-btn-stand{background:linear-gradient(135deg,#922b21,#641e16);color:#fff;font-weight:700}
+.bj-btn-stand:hover:not(:disabled){background:linear-gradient(135deg,#c0392b,#922b21)}
+.bj-btn-double{background:linear-gradient(135deg,#1a5276,#0d2b45);color:#fff;font-weight:700}
+.bj-btn-double:hover:not(:disabled){background:linear-gradient(135deg,#2874a6,#1a5276)}
+.bj-btn-split{background:linear-gradient(135deg,#6c3483,#4a235a);color:#fff;font-weight:700}
+.bj-btn-split:hover:not(:disabled){background:linear-gradient(135deg,#8e44ad,#6c3483)}
+.bj-btn-next{background:linear-gradient(135deg,#b7950b,#7d6608);color:#fff;font-weight:700;font-size:1.1rem}
+.bj-btn-next:hover:not(:disabled){background:linear-gradient(135deg,#d4ac0d,#b7950b);transform:translateY(-2px)}
+.bj-btn-clear{background:rgba(255,255,255,0.07);color:var(--ivory-dim);border:1px solid rgba(255,255,255,0.15);font-size:1rem}
+.bj-btn-clear:hover:not(:disabled){background:rgba(255,255,255,0.12)}
+
+/* ── SHARED CONTROLS ── */
+.controls{display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-start;margin-bottom:1rem}
+.bankroll-display{background:linear-gradient(135deg,#1a1200,#0a0a00);border:1px solid var(--gold-dark);
+  border-radius:6px;padding:0.9rem 1.2rem;text-align:center;min-width:130px}
+.bankroll-label{font-size:0.95rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--ivory-dim);margin-bottom:3px}
+.bankroll-amount{font-family:'Playfair Display',serif;font-size:2.1rem;font-weight:700;color:var(--gold-light);text-shadow:0 0 12px rgba(201,168,76,0.3)}
+.bankroll-amount.win-anim{animation:countUp 0.4s ease}
+@keyframes countUp{0%{transform:scale(1);color:#4caf50}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+.chip-selector{display:flex;flex-direction:column;gap:0.4rem}
+.chip-selector-label{font-size:0.95rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--ivory-dim)}
+.chip-buttons{display:flex;gap:7px}
+.chip-btn{width:52px;height:52px;border-radius:50%;border:3px solid rgba(255,255,255,0.25);cursor:pointer;
+  font-family:'Playfair Display',serif;font-weight:900;font-size:0.88rem;color:white;transition:all 0.15s;
+  box-shadow:0 3px 6px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.2)}
+.chip-btn:hover{transform:translateY(-2px) scale(1.08)}
+.chip-btn.selected{transform:translateY(-4px) scale(1.12);box-shadow:0 6px 16px rgba(0,0,0,0.6),0 0 12px rgba(201,168,76,0.6)}
+.chip-btn.c5{background:var(--chip-red)}.chip-btn.c10{background:var(--chip-blue)}
+.chip-btn.c25{background:var(--chip-green)}.chip-btn.c100{background:var(--chip-black)}
+.action-buttons{display:flex;flex-direction:column;gap:0.5rem;margin-left:auto}
+.btn{padding:0.65rem 1.8rem;font-family:'Playfair Display',serif;font-size:1.2rem;
+  letter-spacing:0.08em;border-radius:3px;cursor:pointer;border:none;transition:all 0.18s;text-transform:uppercase}
+.btn-roll{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#000;font-weight:900;
+  box-shadow:0 4px 12px rgba(201,168,76,0.4)}
+.btn-roll:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 20px rgba(201,168,76,0.5)}
+.btn-roll:disabled{opacity:0.35;cursor:not-allowed}
+.btn-clear{background:rgba(255,255,255,0.07);color:var(--ivory-dim);border:1px solid rgba(255,255,255,0.15);font-size:0.8rem}
+
+/* ── MESSAGE LOG ── */
+.message-log{background:rgba(0,0,0,0.4);border:1px solid rgba(201,168,76,0.15);border-radius:4px;
+  padding:0.8rem 1rem;max-height:120px;overflow-y:auto;font-size:1.1rem;line-height:1.7;margin-bottom:1rem}
+.message-log::-webkit-scrollbar{width:3px}
+.message-log::-webkit-scrollbar-thumb{background:var(--gold-dark);border-radius:2px}
+.log-entry{color:var(--ivory-dim)}.log-entry.win{color:#81c784}.log-entry.lose{color:#e57373}.log-entry.info{color:var(--gold-light)}.log-entry.point{color:#64b5f6}.log-entry.strategy{color:#ffcc80}
+
+/* ── RULES ACCORDION ── */
+.rules-section{margin-top:1.5rem}
+.rules-section h3{font-family:'Playfair Display',serif;color:var(--gold-light);font-size:1.5rem;
+  margin-bottom:0.8rem;text-align:center;letter-spacing:0.08em}
+.rule-card{background:linear-gradient(135deg,#111,#0d0d0d);border:1px solid rgba(201,168,76,0.2);
+  border-radius:4px;margin-bottom:5px;overflow:hidden}
+.rule-header{padding:0.85rem 1.1rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+  font-family:'Playfair Display',serif;color:var(--gold-light);font-size:1.15rem;transition:background 0.2s}
+.rule-header:hover{background:rgba(201,168,76,0.06)}
+.rule-arrow{transition:transform 0.25s}
+.rule-card.open .rule-arrow{transform:rotate(180deg)}
+.rule-body{max-height:0;overflow:hidden;transition:max-height 0.3s ease;padding:0 1rem;
+  color:var(--ivory-dim);font-size:1.1rem;line-height:1.8}
+.rule-card.open .rule-body{max-height:500px;padding:0 1.1rem 0.9rem}
+.odds-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-top:0.6rem}
+.odds-cell{background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.15);
+  border-radius:3px;padding:0.5rem 0.7rem;font-size:1rem}
+.odds-cell strong{color:var(--gold-light);display:block;font-size:0.92rem}
+
+/* ── STRATEGY TABLE ── */
+.strategy-chart{width:100%;border-collapse:collapse;font-size:1rem;margin-top:0.6rem}
+.strategy-chart th{background:rgba(201,168,76,0.2);color:var(--gold-light);padding:5px 7px;
+  font-family:'Playfair Display',serif;border:1px solid rgba(201,168,76,0.2);font-size:0.95rem}
+.strategy-chart td{padding:4px 7px;border:1px solid rgba(255,255,255,0.06);text-align:center;font-size:0.92rem}
+.sc-h{background:rgba(76,175,80,0.15);color:#a5d6a7}.sc-s{background:rgba(244,67,54,0.15);color:#ef9a9a}
+.sc-d{background:rgba(33,150,243,0.15);color:#90caf9}.sc-p{background:rgba(156,39,176,0.15);color:#ce93d8}
+
+footer{text-align:center;padding:2rem;color:rgba(245,240,225,0.22);font-size:1rem;letter-spacing:0.05em}
+
+@media(max-width:600px){
+  .controls{flex-direction:column}
+  .action-buttons{margin-left:0;flex-direction:row}
+  .row-pass{grid-template-columns:1fr 1fr}
+  .row-props{grid-template-columns:repeat(3,1fr)}
+  .bj-table{border-radius:10px;padding:1.2rem 1rem}
+  .odds-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>CASINO TUTORIAL</h1>
+  <p>Master Craps &amp; Blackjack — strategy, odds &amp; live coaching</p>
+</header>
+
+<!-- GAME SWITCHER -->
+<div class="game-switcher">
+  <button class="game-tab active" onclick="switchGame('craps',this)">🎲 CRAPS</button>
+  <button class="game-tab" onclick="switchGame('blackjack',this)">🃏 BLACKJACK</button>
+</div>
+
+<div class="casino-floor">
+
+<!-- ═══════════════════════════════════════════════
+     CRAPS PANEL
+═══════════════════════════════════════════════ -->
+<div class="game-panel active" id="panel-craps">
+
+  <div class="steps-nav" id="craps-steps">
+    <button class="step-btn active" onclick="setCrapsStep(0)">1. Overview</button>
+    <button class="step-btn" onclick="setCrapsStep(1)">2. Come-Out Roll</button>
+    <button class="step-btn" onclick="setCrapsStep(2)">3. Best Bets</button>
+    <button class="step-btn" onclick="setCrapsStep(3)">4. Point Phase</button>
+    <button class="step-btn" onclick="setCrapsStep(4)">5. Free Play</button>
+  </div>
+
+  <div class="tutorial-panel">
+    <h2 id="cTutTitle">Welcome to Craps</h2>
+    <p id="cTutText">Craps is a fast-paced dice game played on a large felt table. Players wager on the outcome of two dice. The game has two phases: the <strong>Come-Out Roll</strong> and the <strong>Point Phase</strong>. With the right bets, the house edge can be as low as 1.36%.</p>
+    <div class="strategy-box suggest-good" id="cStratBox">
+      <div class="strategy-box-label">🎯 Strategy Insight</div>
+      <p id="cStratText">🎲 COME-OUT ODDS: 7 = 6/36 (16.7%), 11 = 2/36 (5.6%) → 8 instant wins (22.2%). Craps 2/3/12 = 4/36 (11.1%) instant losses. Point set = 24/36 (66.7%). Place a Pass Line bet first — it gives you the best come-out advantage at only 1.41% house edge.</p>
+    </div>
+  </div>
+
+  <!-- DICE -->
+  <div class="dice-area">
+    <div class="die" id="die1">
+      <div class="pip" id="d1p1"></div><div class="pip" id="d1p2"></div><div class="pip" id="d1p3"></div>
+      <div class="pip" id="d1p4"></div><div class="pip" id="d1p5"></div><div class="pip" id="d1p6"></div>
+      <div class="pip" id="d1p7"></div><div class="pip" id="d1p8"></div><div class="pip" id="d1p9"></div>
+    </div>
+    <div class="roll-result">
+      <div class="total" id="cRollTotal">—</div>
+      <div class="outcome" id="cRollOutcome">Place a bet &amp; roll</div>
+    </div>
+    <div class="die" id="die2">
+      <div class="pip" id="d2p1"></div><div class="pip" id="d2p2"></div><div class="pip" id="d2p3"></div>
+      <div class="pip" id="d2p4"></div><div class="pip" id="d2p5"></div><div class="pip" id="d2p6"></div>
+      <div class="pip" id="d2p7"></div><div class="pip" id="d2p8"></div><div class="pip" id="d2p9"></div>
+    </div>
+  </div>
+
+  <!-- CRAPS TABLE -->
+  <div class="table-wrapper">
+    <div class="craps-table">
+      <div class="row-pass">
+        <div class="bet-zone" id="cz-pass" onclick="cPlaceBet('pass',this)">
+          <span class="bet-label large">PASS LINE</span>
+          <span class="bet-label odds">Pays 1:1 · Edge 1.41%</span>
+          <div class="chip-stack" id="cch-pass"></div>
+          <div class="puck off" id="puck">OFF</div>
+        </div>
+        <div class="bet-zone" id="cz-dontpass" onclick="cPlaceBet('dontpass',this)">
+          <span class="bet-label">DON'T PASS BAR ⚄⚄</span>
+          <span class="bet-label odds">Edge 1.36%</span>
+          <div class="chip-stack" id="cch-dontpass"></div>
+        </div>
+        <div class="bet-zone" id="cz-come" onclick="cPlaceBet('come',this)">
+          <span class="bet-label large">COME</span>
+          <span class="bet-label odds">1:1 · after point set</span>
+          <div class="chip-stack" id="cch-come"></div>
+        </div>
+        <div class="bet-zone" id="cz-dontcome" onclick="cPlaceBet('dontcome',this)">
+          <span class="bet-label">DON'T COME BAR ⚄⚄</span>
+          <div class="chip-stack" id="cch-dontcome"></div>
+        </div>
+      </div>
+      <div class="row-numbers">
+        <div class="bet-zone" id="cz-place4" onclick="cPlaceBet('place4',this)"><span class="number-label">4</span><span class="bet-label odds">9:5 · Edge 6.7%</span><div class="chip-stack" id="cch-place4"></div></div>
+        <div class="bet-zone" id="cz-place5" onclick="cPlaceBet('place5',this)"><span class="number-label">5</span><span class="bet-label odds">7:5 · Edge 4.0%</span><div class="chip-stack" id="cch-place5"></div></div>
+        <div class="bet-zone" id="cz-place6" onclick="cPlaceBet('place6',this)"><span class="number-label">6</span><span class="bet-label odds">7:6 · Edge 1.5%</span><div class="chip-stack" id="cch-place6"></div></div>
+        <div class="bet-zone" id="cz-place8" onclick="cPlaceBet('place8',this)"><span class="number-label">8</span><span class="bet-label odds">7:6 · Edge 1.5%</span><div class="chip-stack" id="cch-place8"></div></div>
+        <div class="bet-zone" id="cz-place9" onclick="cPlaceBet('place9',this)"><span class="number-label">9</span><span class="bet-label odds">7:5 · Edge 4.0%</span><div class="chip-stack" id="cch-place9"></div></div>
+        <div class="bet-zone" id="cz-place10" onclick="cPlaceBet('place10',this)"><span class="number-label">10</span><span class="bet-label odds">9:5 · Edge 6.7%</span><div class="chip-stack" id="cch-place10"></div></div>
+      </div>
+      <div class="row-field-place">
+        <div class="bet-zone" id="cz-field" onclick="cPlaceBet('field',this)" style="min-height:60px">
+          <span class="bet-label large">FIELD</span>
+          <span class="bet-label odds">2,3,4,9,10,11,12 · 2&amp;12 pay 2:1 · Edge 5.6%</span>
+          <div class="chip-stack" id="cch-field"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
+          <div class="bet-zone" id="cz-hard4" onclick="cPlaceBet('hard4',this)"><span class="bet-label">HARD 4</span><span class="bet-label odds">7:1 · 11.1%</span><div class="chip-stack" id="cch-hard4"></div></div>
+          <div class="bet-zone" id="cz-hard6" onclick="cPlaceBet('hard6',this)"><span class="bet-label">HARD 6</span><span class="bet-label odds">9:1 · 9.1%</span><div class="chip-stack" id="cch-hard6"></div></div>
+          <div class="bet-zone" id="cz-hard8" onclick="cPlaceBet('hard8',this)"><span class="bet-label">HARD 8</span><span class="bet-label odds">9:1 · 9.1%</span><div class="chip-stack" id="cch-hard8"></div></div>
+          <div class="bet-zone" id="cz-hard10" onclick="cPlaceBet('hard10',this)"><span class="bet-label">HARD 10</span><span class="bet-label odds">7:1 · 11.1%</span><div class="chip-stack" id="cch-hard10"></div></div>
+        </div>
+      </div>
+      <div class="row-props">
+        <div class="bet-zone" id="cz-big6" onclick="cPlaceBet('big6',this)"><span class="bet-label">BIG 6</span><span class="bet-label odds">1:1 · 9.1%</span><div class="chip-stack" id="cch-big6"></div></div>
+        <div class="bet-zone" id="cz-big8" onclick="cPlaceBet('big8',this)"><span class="bet-label">BIG 8</span><span class="bet-label odds">1:1 · 9.1%</span><div class="chip-stack" id="cch-big8"></div></div>
+        <div class="bet-zone" id="cz-any7" onclick="cPlaceBet('any7',this)"><span class="bet-label">ANY 7</span><span class="bet-label odds">4:1 · Edge 16.9% ⚠️</span><div class="chip-stack" id="cch-any7"></div></div>
+        <div class="bet-zone" id="cz-yo11" onclick="cPlaceBet('yo11',this)"><span class="bet-label">YO (11)</span><span class="bet-label odds">15:1 · Edge 11.1%</span><div class="chip-stack" id="cch-yo11"></div></div>
+        <div class="bet-zone" id="cz-anycraps" onclick="cPlaceBet('anycraps',this)"><span class="bet-label">ANY CRAPS</span><span class="bet-label odds">7:1 · Edge 11.1%</span><div class="chip-stack" id="cch-anycraps"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <div class="bankroll-display">
+      <div class="bankroll-label">💰 Bankroll</div>
+      <div class="bankroll-amount" id="cBankroll">$500</div>
+    </div>
+    <div class="chip-selector">
+      <div class="chip-selector-label">Chip Value</div>
+      <div class="chip-buttons">
+        <button class="chip-btn c5 selected" onclick="cSelectChip(5,this)">$5</button>
+        <button class="chip-btn c10" onclick="cSelectChip(10,this)">$10</button>
+        <button class="chip-btn c25" onclick="cSelectChip(25,this)">$25</button>
+        <button class="chip-btn c100" onclick="cSelectChip(100,this)">$100</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.3rem;align-items:center;justify-content:center">
+      <div style="font-size:0.95rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--ivory-dim)">Wagered</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--gold-light)" id="cWagered">$0</div>
+    </div>
+    <div class="action-buttons">
+      <button class="btn btn-roll" id="cRollBtn" onclick="cRollDice()">🎲 Roll Dice</button>
+      <button class="btn btn-clear" onclick="cClearBets()">Clear Bets</button>
+    </div>
+  </div>
+
+  <div class="message-log" id="cLog">
+    <div class="log-entry info">🎰 Select a chip value, click a bet zone, then Roll Dice to start playing!</div>
+  </div>
+
+  <!-- CRAPS RULES -->
+  <div class="rules-section">
+    <h3>— Craps Reference & Strategy —</h3>
+    <div class="rule-card" onclick="toggleRule(this)">
+      <div class="rule-header">Pass Line — The Foundation Bet <span class="rule-arrow">▼</span></div>
+      <div class="rule-body">The cornerstone of craps. House edge: <strong>1.41%</strong>. Come-out roll: 7 or 11 wins instantly; 2, 3, 12 lose. Any other number sets the Point — roll it again before a 7 to win. <strong>Strategy:</strong> Always start here. Never skip it. Combined with Free Odds (available in real casinos), the effective edge drops below 1%.</div>
+    </div>
+    <div class="rule-card" onclick="toggleRule(this)">
+      <div class="rule-header">Don't Pass — The Dark Side <span class="rule-arrow">▼</span></div>
+      <div class="rule-body">Slightly better odds at <strong>1.36% edge</strong>. You win when others lose (7 after a Point). Pushes on 12 (bar). Socially unpopular at live tables since you're rooting against the shooter, but mathematically superior to Pass. <strong>Strategy:</strong> Excellent choice for math-focused players who don't mind going solo.</div>
+    </div>
+    <div class="rule-card" onclick="toggleRule(this)">
+      <div class="rule-header">Place Bets — Odds Comparison <span class="rule-arrow">▼</span></div>
+      <div class="rule-body">
+        <div class="odds-grid">
+          <div class="odds-cell"><strong>Place 6 or 8</strong>Pays 7:6<br>Edge: 1.52%<br>✅ Best place</div>
+          <div class="odds-cell"><strong>Place 5 or 9</strong>Pays 7:5<br>Edge: 4.00%<br>⚠️ Acceptable</div>
+          <div class="odds-cell"><strong>Place 4 or 10</strong>Pays 9:5<br>Edge: 6.67%<br>❌ Avoid</div>
+        </div>
+        <p style="margin-top:0.6rem"><strong>Strategy:</strong> If placing numbers, stick to 6 and 8. Bet in multiples of $6. The 6 and 8 are rolled more often than any number except 7.</p>
+      </div>
+    </div>
+    <div class="rule-card" onclick="toggleRule(this)">
+      <div class="rule-header">Field, Hardways & Props — The Trap Bets <span class="rule-arrow">▼</span></div>
+      <div class="rule-body">Field (5.6% edge), Any Craps (11.1%), Any 7 (16.9%), Hardways (9–11%). These bets are flashy and frequently advertised by casinos for a reason — they're profitable <em>for the house</em>. <strong>Strategy:</strong> Treat proposition bets as entertainment only, never as a core strategy. A $5 Any 7 now and then is fine; betting it every roll will drain your stack fast.</div>
+    </div>
+    <div class="rule-card" onclick="toggleRule(this)">
+      <div class="rule-header">🏆 Optimal Craps Strategy <span class="rule-arrow">▼</span></div>
+      <div class="rule-body"><strong>Tier 1 (Best):</strong> Pass Line or Don't Pass only. Simple, low edge, longest playing time per dollar.<br><strong>Tier 2 (Good):</strong> Pass Line + Place 6 &amp; 8. More action with still-reasonable edges.<br><strong>Tier 3 (Okay):</strong> Adding Come bets for multiple numbers working at once.<br><strong>Avoid:</strong> Any 7, Any Craps, Big 6/8 (inferior to Place 6/8), Hardways as your primary bet.<br><em>Rule of thumb: If the house edge is over 5%, that bet is costing you real money.</em></div>
+    </div>
+  </div>
+</div><!-- /craps panel -->
+
+
+<!-- ═══════════════════════════════════════════════
+     BLACKJACK PANEL
+═══════════════════════════════════════════════ -->
+<div class="game-panel" id="panel-blackjack">
+
+  <div class="steps-nav" id="bj-steps">
+    <button class="step-btn active" onclick="setBjStep(0)">1. The Goal</button>
+    <button class="step-btn" onclick="setBjStep(1)">2. Card Values</button>
+    <button class="step-btn" onclick="setBjStep(2)">3. Your Moves</button>
+    <button class="step-btn" onclick="setBjStep(3)">4. Basic Strategy</button>
+    <button class="step-btn" onclick="setBjStep(4)">5. Free Play</button>
+  </div>
+
+  <div class="tutorial-panel">
+    <h2 id="bjTutTitle">Welcome to Blackjack</h2>
+    <p id="bjTutText">Blackjack is the casino game with the lowest house edge when played correctly — as low as <strong>0.5%</strong> with perfect Basic Strategy. Your goal: beat the dealer by getting closer to 21 without going over. You don't play against other players, only the dealer.</p>
+    <div class="strategy-box" id="bjStratBox">
+      <div class="strategy-box-label">🎯 Live Strategy Coach</div>
+      <p id="bjStratText">Place a bet on the circle, then hit Deal. After each card, your personalized strategy advice will appear here — including the exact move Basic Strategy recommends and why.</p>
+    </div>
+  </div>
+
+  <!-- BLACKJACK TABLE -->
+  <div class="bj-table" id="bjTable">
+
+    <!-- Insurance zone (hidden by default) -->
+    <div id="bjInsuranceRow" style="display:none;width:100%;text-align:center">
+      <div class="bj-insurance-zone" onclick="bjInsurance()" id="bjInsZone">💰 Insurance? (pays 2:1 if dealer has Blackjack)</div>
+    </div>
+
+    <div class="bj-section-label">DEALER</div>
+    <div class="hand-area" id="bjDealerHand"></div>
+    <div class="hand-value" id="bjDealerValue"></div>
+
+    <div style="height:1rem"></div>
+
+    <!-- Bet circle -->
+    <div class="bj-bet-circle" id="bjBetCircle" onclick="bjPlaceBet()">
+      <div class="chip-stack" id="bjBetChips"></div>
+      <span id="bjBetLabel" style="position:relative;z-index:1">BET HERE</span>
+    </div>
+    <div style="font-family:'Playfair Display',serif;font-size:0.95rem;color:var(--gold-light);min-height:1.4em" id="bjBetAmt">$0</div>
+
+    <div style="height:0.5rem"></div>
+    <div class="bj-section-label">YOUR HAND</div>
+    <div class="hand-area" id="bjPlayerHand"></div>
+    <div class="hand-value" id="bjPlayerValue"></div>
+  </div>
+
+  <!-- BJ ACTION BUTTONS -->
+  <div class="bj-actions" id="bjActions">
+    <button class="bj-btn bj-btn-deal" id="bjDealBtn" onclick="bjDeal()">🃏 Deal</button>
+    <button class="bj-btn bj-btn-hit" id="bjHitBtn" onclick="bjHit()" disabled>Hit</button>
+    <button class="bj-btn bj-btn-stand" id="bjStandBtn" onclick="bjStand()" disabled>Stand</button>
+    <button class="bj-btn bj-btn-double" id="bjDoubleBtn" onclick="bjDouble()" disabled>Double Down</button>
+    <button class="bj-btn bj-btn-split" id="bjSplitBtn" onclick="bjSplit()" disabled>Split</button>
+    <button class="bj-btn bj-btn-next" id="bjNextBtn" onclick="bjNextHand()" disabled style="display:none">Next Hand ➜</button>
+    <button class="bj-btn bj-btn-clear" id="bjClearBtn" onclick="bjClearBet()">Clear Bet</button>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls" style="margin-top:0.8rem">
+    <div class="bankroll-display">
+      <div class="bankroll-label">💰 Bankroll</div>
+      <div class="bankroll-amount" id="bjBankroll">$500</div>
+    </div>
+    <div class="chip-selector">
+      <div class="chip-selector-label">Chip Value</div>
+      <div class="chip-buttons">
+        <button class="chip-btn c5 selected" id="bjChip5" onclick="bjSelectChip(5,this)">$5</button>
+        <button class="chip-btn c10" onclick="bjSelectChip(10,this)">$10</button>
+        <button class="chip-btn c25" onclick="bjSelectChip(25,this)">$25</button>
+        <button class="chip-btn c100" onclick="bjSelectChip(100,this)">$100</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.3rem;align-items:center;justify-content:center">
+      <div style="font-size:0.95rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--ivory-dim)">Current Bet</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--gold-light)" id="bjBetDisplay">$0</div>
+    </div>
+  </div>
+
+  <div class="message-log" id="bjLog">
+    <div class="log-entry info">🃏 Select a chip, click the bet circle, then hit Deal to start. Live coaching will appear after every card!</div>
+  </div>
+
+  <!-- BLACKJACK RULES -->
+  <div class="rules-section">
+    <h3>— Blackjack Reference & Strategy —</h3>
+    <div class="rule-card" onclick="toggleRule(this)">
+      <div class="rule-header">Card Values & Aces <span class="rule-arrow">▼</span></div>
+      <div class="rule-body">Number cards = face value. J, Q, K = 10 each. Ace = 1 or 11 (whichever helps more). A "soft" hand contains an Ace counted as 11 (Soft 17 = A+6). A "hard" hand has no Ace, or the Ace counts as 1. Blackjack = Ace + 10-value card on the deal = pays 3:2. <strong>Strategy:</strong> Treat aces as 11 until you'd bust — then count them as 1.</div>
+    </div>
+    <div class="rule-card" onclick="toggleRule(this)">
+      <div class="rule-header">Dealer Rules You Must Know <span class="rule-arrow">▼</span></div>
+      <div class="rule-body">The dealer plays by fixed rules: must hit on 16 or less, must stand on hard 17+. Most tables require dealer to hit Soft 17 (A+6). This rule adds ~0.2% to the house edge. The dealer only reveals one card (the "up-card") — your strategy depends heavily on what that card is. <strong>Key insight:</strong> Dealer busts most often when showing 4, 5, or 6. These are your best opportunities to double down.</div>
+    </div>
+    <div class="rule-card" onclick="toggleRule(this)">
+      <div class="rule-header">Your Four Moves Explained <span class="rule-arrow">▼</span></div>
+      <div class="rule-body"><strong>Hit:</strong> Take another card. Use when your total is low or the dealer shows a strong card (7–Ace).<br><strong>Stand:</strong> Keep your hand. Use on strong totals or when the dealer shows 4–6 (likely to bust).<br><strong>Double Down:</strong> Double your bet and take exactly one more card. Best on hard 11, hard 10, and hard 9 against weak dealer cards.<br><strong>Split:</strong> When dealt a pair, separate into two hands with equal bets. Always split Aces and 8s. Never split 10s or 5s.</div>
+    </div>
+    <div class="rule-card" onclick="toggleRule(this)">
+      <div class="rule-header">Insurance — Almost Always a Trap <span class="rule-arrow">▼</span></div>
+      <div class="rule-body">When the dealer shows an Ace, you can bet up to half your original bet that the dealer has Blackjack (pays 2:1). <strong>The math:</strong> Only 4 of 13 card denominations are 10-value, so the probability of dealer BJ is ~30.8%. Insurance pays 2:1 but breaks even only at 33.3%. Result: insurance carries a <strong>7.7% house edge</strong>. <strong>Strategy: Never take insurance</strong> unless you're a card counter with a very high count. Even "even money" (insurance on your own BJ) costs you money long-term.</div>
+    </div>
+    <div class="rule-card" onclick="toggleRule(this)">
+      <div class="rule-header">📊 Basic Strategy Quick Reference <span class="rule-arrow">▼</span></div>
+      <div class="rule-body">
+        <p>Dealer up-card across top (2–A). Your hand on left. <span class="sc-h" style="padding:1px 5px;border-radius:2px">H=Hit</span> <span class="sc-s" style="padding:1px 5px;border-radius:2px">S=Stand</span> <span class="sc-d" style="padding:1px 5px;border-radius:2px">D=Double</span> <span class="sc-p" style="padding:1px 5px;border-radius:2px">P=Split</span></p>
+        <table class="strategy-chart">
+          <tr><th>Hand</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>A</th></tr>
+          <tr><td>8</td><td class="sc-h">H</td><td class="sc-h">H</td><td class="sc-h">H</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-h">H</td><td class="sc-h">H</td><td class="sc-h">H</td><td class="sc-h">H</td><td class="sc-h">H</td></tr>
+          <tr><td>9</td><td class="sc-h">H</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-h">H</td><td class="sc-h">H</td><td class="sc-h">H</td><td class="sc-h">H</td><td class="sc-h">H</td></tr>
+          <tr><td>10</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-h">H</td><td class="sc-h">H</td></tr>
+          <tr><td>11</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-h">H</td></tr>
+          <tr><td>12</td><td class="sc-h">H</td><td class="sc-h">H</td><td class="sc-s">S</td><td class="sc-s">S</td><td class="sc-s">S</td><td class="sc-h">H</td><td class="sc-h">H</td><td class="sc-h">H</td><td class="sc-h">H</td><td class="sc-h">H</td></tr>
+          <tr><td>13–16</td><td class="sc-s">S</td><td class="sc-s">S</td><td class="sc-s">S</td><td class="sc-s">S</td><td class="sc-s">S</td><td class="sc-h">H</td><td class="sc-h">H</td><td class="sc-h">H</td><td class="sc-h">H</td><td class="sc-h">H</td></tr>
+          <tr><td>17+</td><td class="sc-s">S</td><td class="sc-s">S</td><td class="sc-s">S</td><td class="sc-s">S</td><td class="sc-s">S</td><td class="sc-s">S</td><td class="sc-s">S</td><td class="sc-s">S</td><td class="sc-s">S</td><td class="sc-s">S</td></tr>
+          <tr><td>A,2–A,6</td><td class="sc-h">H</td><td class="sc-h">H</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-h">H</td><td class="sc-h">H</td><td class="sc-h">H</td><td class="sc-h">H</td><td class="sc-h">H</td></tr>
+          <tr><td>A,7</td><td class="sc-s">S</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-d">D</td><td class="sc-s">S</td><td class="sc-s">S</td><td class="sc-h">H</td><td class="sc-h">H</td><td class="sc-h">H</td></tr>
+          <tr><td>A,8+</td><td class="sc-s">S</td><td class="sc-s">S</td><td class="sc-s">S</td><td class="sc-s">S</td><td class="sc-s">S</td><td class="sc-s">S</td><td class="sc-s">S</td><td class="sc-s">S</td><td class="sc-s">S</td><td class="sc-s">S</td></tr>
+          <tr><td>A,A</td><td class="sc-p">P</td><td class="sc-p">P</td><td class="sc-p">P</td><td class="sc-p">P</td><td class="sc-p">P</td><td class="sc-p">P</td><td class="sc-p">P</td><td class="sc-p">P</td><td class="sc-p">P</td><td class="sc-p">P</td></tr>
+          <tr><td>8,8</td><td class="sc-p">P</td><td class="sc-p">P</td><td class="sc-p">P</td><td class="sc-p">P</td><td class="sc-p">P</td><td class="sc-p">P</td><td class="sc-p">P</td><td class="sc-p">P</td><td class="sc-p">P</td><td class="sc-p">P</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="rule-card" onclick="toggleRule(this)">
+      <div class="rule-header">🏆 Edge Reduction — What Really Matters <span class="rule-arrow">▼</span></div>
+      <div class="rule-body">
+        <div class="odds-grid">
+          <div class="odds-cell"><strong>Basic Strategy</strong>Reduces house edge from ~2–5% down to 0.5%<br>✅ Learn this</div>
+          <div class="odds-cell"><strong>Blackjack 3:2</strong>Always seek 3:2 tables. 6:5 BJ adds 1.4% edge<br>❌ Avoid 6:5</div>
+          <div class="odds-cell"><strong>Single Deck</strong>Fewer decks = lower edge. 8-deck shoe adds ~0.6%<br>⚠️ Seek fewer</div>
+        </div>
+        <p style="margin-top:0.6rem">Key rules that reduce house edge: Dealer stands Soft 17 (−0.2%), Double after split allowed (−0.14%), Re-split Aces (−0.08%). Combined, perfect conditions + Basic Strategy can get the edge under 0.28%.</p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /blackjack panel -->
+</div><!-- /casino-floor -->
+
+<footer>For entertainment &amp; educational purposes only · Practice play, no real money · Please gamble responsibly</footer>
+
+<script>
+// ══════════════════════════════════════════════
+// UTILITY
+// ══════════════════════════════════════════════
+function toggleRule(card){ card.classList.toggle('open') }
+function switchGame(game, btn){
+  document.querySelectorAll('.game-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.game-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+game).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ══════════════════════════════════════════════
+//  CRAPS ENGINE
+// ══════════════════════════════════════════════
+const PIP_MAP={1:[5],2:[1,9],3:[1,5,9],4:[1,3,7,9],5:[1,3,5,7,9],6:[1,3,4,6,7,9]};
+let cBankroll=500, cChip=5, cBets={}, cPoint=null, cPhase='comeout';
+
+function setDieFace(n,v){
+  for(let i=1;i<=9;i++) document.getElementById(`d${n}p${i}`).classList.toggle('show',PIP_MAP[v].includes(i));
+}
+
+function cSelectChip(v,btn){
+  cChip=v;
+  document.querySelectorAll('#panel-craps .chip-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function cPlaceBet(key,el){
+  if(cBankroll<cChip){cAddLog('Not enough funds!','lose');return;}
+  cBankroll-=cChip; cBets[key]=(cBets[key]||0)+cChip;
+  document.getElementById('cBankroll').textContent='$'+cBankroll;
+  const stack=document.getElementById('cch-'+key);
+  if(stack){const t=document.createElement('div');t.className=`chip-token c${cChip>25?100:cChip}`;t.textContent='$'+cChip;stack.appendChild(t);}
+  cAddLog(`Placed $${cChip} on ${key.toUpperCase()}. Zone total: $${cBets[key]}.`);
+  cUpdateWagered(); cUpdateStrategy();
+}
+
+function cUpdateWagered(){
+  document.getElementById('cWagered').textContent='$'+Object.values(cBets).reduce((a,b)=>a+b,0);
+}
+
+function cClearBets(){
+  cBets={}; document.querySelectorAll('[id^="cch-"]').forEach(s=>s.innerHTML=''); cUpdateWagered();
+}
+
+function cAddLog(msg,type=''){
+  const log=document.getElementById('cLog');
+  const e=document.createElement('div'); e.className='log-entry'+(type?' '+type:''); e.textContent=msg;
+  log.appendChild(e); log.scrollTop=log.scrollHeight;
+  while(log.children.length>35) log.removeChild(log.firstChild);
+}
+
+function cFlash(id,type){
+  const el=document.getElementById(id); if(!el)return;
+  const cls=type==='win'?'win-flash':'lose-flash';
+  el.classList.add(cls); setTimeout(()=>el.classList.remove(cls),700);
+}
+
+function cApplyNet(amount,partial=false){
+  cBankroll+=amount; if(cBankroll<0)cBankroll=0;
+  const el=document.getElementById('cBankroll'); el.textContent='$'+cBankroll;
+  if(amount>0){el.classList.add('win-anim');setTimeout(()=>el.classList.remove('win-anim'),400);}
+  if(!partial&&amount>0) cAddLog(`💰 Net: +$${amount}. Bankroll: $${cBankroll}.`,'win');
+  if(!partial&&amount<0) cAddLog(`📉 Net: -$${Math.abs(amount)}. Bankroll: $${cBankroll}.`,'lose');
+  if(cBankroll===0){cAddLog('😢 Bankroll depleted — refilled to $500.','info');cBankroll=500;el.textContent='$500';}
+}
+
+function cMovePuck(num){
+  const puck=document.getElementById('puck');
+  puck.textContent='ON'; puck.classList.remove('off'); puck.classList.add('on');
+  const z=document.getElementById('cz-place'+num); if(z) z.appendChild(puck);
+}
+function cResetPuck(){
+  const puck=document.getElementById('puck');
+  puck.textContent='OFF'; puck.classList.remove('on'); puck.classList.add('off');
+  document.getElementById('cz-pass').appendChild(puck);
+}
+
+// Strategy advice generator
+function cUpdateStrategy(lastRoll, d1, d2){
+  const box=document.getElementById('cStratBox');
+  const txt=document.getElementById('cStratText');
+  let advice='', cls='';
+  const hasBet=Object.keys(cBets).length>0;
+  const hasPropBet=cBets['any7']||cBets['yo11']||cBets['anycraps'];
+  const hasHighEdge=cBets['field']||cBets['hard4']||cBets['hard6']||cBets['hard8']||cBets['hard10']||cBets['big6']||cBets['big8']||cBets['place4']||cBets['place10'];
+
+  if(cPhase==='comeout'&&!hasBet){
+    advice='🎲 COME-OUT ROLL ODDS — Start with Pass Line (1.41% edge). On the come-out: 7 can be rolled 6 ways out of 36 (16.7%), 11 can be rolled 2 ways (5.6%) — so you have 8 winning outcomes (22.2%). Craps numbers 2/3/12 cover only 4 ways (11.1%). That leaves 24 ways (66.7%) to set a Point. Pass Line wins more than it loses on the come-out.';
+    cls='suggest-good';
+  } else if(cPhase==='comeout'&&(cBets['pass']||cBets['dontpass'])){
+    if(hasPropBet){
+      advice='⚠️ You have proposition bets active. Any 7 carries a 16.9% house edge — nearly 12× worse than Pass Line. Remove these before rolling to protect your bankroll.';
+      cls='suggest-danger';
+    } else if(cBets['pass']&&!cBets['place6']&&!cBets['place8']){
+      advice='✅ Good start — Pass Line placed. Come-out odds: 8 ways to win instantly (7 or 11) vs 4 ways to lose (2/3/12). If a Point is set, adding Place 6 or 8 gives you extra numbers at only 1.52% edge.';
+      cls='suggest-good';
+    } else {
+      advice='✅ Solid position — Pass Line + Place 6/8 is the optimal beginner combo. Three ways to profit while keeping your overall house edge below 2%.';
+      cls='suggest-good';
+    }
+  } else if(cPhase==='point'){
+    const p=cPoint;
+    const waysPoint={4:3,5:4,6:5,8:5,9:4,10:3}[p]||0;
+    const ratio=(6/waysPoint).toFixed(1);
+    const bustPct=((6/(6+waysPoint))*100).toFixed(0);
+    if(hasPropBet){
+      advice=`⚠️ Point is ${p} (${waysPoint} ways to hit vs 6 ways to seven-out — ${ratio}:1 against). Prop bets burn money fast. Focus on the point: 7-out probability each roll is ${bustPct}%.`;
+      cls='suggest-caution';
+    } else if(hasHighEdge){
+      advice=`Point is ${p} — ${waysPoint} ways to win vs 6 ways to lose (${ratio}:1 against, ${bustPct}% seven-out risk per roll). Place 4/10 carry 6.7% edge — consider taking them down and focusing on 6/8.`;
+      cls='suggest-caution';
+    } else {
+      advice=`Point: ${p}. ${waysPoint} ways to roll ${p} vs 6 ways to roll 7. Odds are ${ratio}:1 against you each roll — seven-out risk is ${bustPct}% per roll. Stay patient and disciplined. Your current bets are well-positioned.`;
+      cls='suggest-good';
+    }
+  }
+  if(lastRoll!==undefined){
+    if(lastRoll===7&&cPhase==='comeout'){
+      advice='🎉 Natural 7! The most common single outcome (6/36 = 16.7%). This is why Pass Line bettors love the come-out — 7 is your best friend before a Point is set.';
+      cls='suggest-good';
+    } else if(lastRoll===11&&cPhase==='comeout'){
+      advice='🎉 Yo-Eleven! An 11 appears on 2 of 36 rolls (5.6%). Combined with the 7, that\'s 22.2% of come-out rolls winning instantly for Pass Line.';
+      cls='suggest-good';
+    } else if([2,3,12].includes(lastRoll)&&cPhase==='comeout'){
+      advice=`Craps ${lastRoll}. The craps numbers (2/3/12) account for only 4 of 36 outcomes (11.1%). Combined probability of crapping out is just 11.1% — bad luck, not bad strategy. Keep betting Pass Line.`;
+      cls='suggest-caution';
+    } else if(cPhase==='point'&&lastRoll===7){
+      advice='🔥 Seven-out. The 7 appears 6/36 rolls (16.7%), more than any single number. This is expected variance — not a reason to abandon your strategy. Restart with Pass Line.';
+      cls='suggest-danger';
+    }
+  }
+  if(advice){ txt.textContent=advice; box.className='strategy-box '+(cls||''); }
+}
+
+function cRollDice(){
+  const total=Object.values(cBets).reduce((a,b)=>a+b,0);
+  if(total===0){cAddLog('⚠️ Place a bet first!','info');return;}
+  const btn=document.getElementById('cRollBtn'); btn.disabled=true;
+  document.getElementById('die1').classList.add('rolling'); document.getElementById('die2').classList.add('rolling');
+  setTimeout(()=>{
+    const d1=Math.ceil(Math.random()*6), d2=Math.ceil(Math.random()*6), t=d1+d2;
+    setDieFace(1,d1); setDieFace(2,d2);
+    document.getElementById('die1').classList.remove('rolling'); document.getElementById('die2').classList.remove('rolling');
+    document.getElementById('cRollTotal').textContent=t;
+    cResolveBets(d1,d2,t);
+    cUpdateStrategy(t,d1,d2);
+    btn.disabled=false;
+  },520);
+}
+
+function cResolveBets(d1,d2,t){
+  const isHard=d1===d2; let net=0;
+  const outEl=document.getElementById('cRollOutcome'); outEl.className='outcome';
+  if(cPhase==='comeout'){
+    if(t===7||t===11){
+      outEl.textContent=t===7?'Natural 7 — Pass Line wins!':'Yo-Eleven — Pass Line wins!'; outEl.classList.add('natural');
+      cAddLog(`🎉 ${t} — Natural! Pass Line wins.`,'win');
+      if(cBets['pass']){net+=cBets['pass']*2;cFlash('cz-pass','win');}
+      if(cBets['dontpass']){net-=cBets['dontpass'];cFlash('cz-dontpass','lose');}
+      if(cBets['come']){net+=cBets['come']*2;cFlash('cz-come','win');}
+      net+=cResolveOneRolls(t,d1,d2); cApplyNet(net); cClearBets();
+    } else if([2,3,12].includes(t)){
+      outEl.textContent=`Craps ${t} — Pass Line loses!`; outEl.classList.add('craps-out');
+      cAddLog(`💀 ${t} (Craps) — Pass Line loses.`,'lose');
+      if(cBets['pass']){net-=cBets['pass'];cFlash('cz-pass','lose');}
+      if(cBets['dontpass']){if(t===12){net+=cBets['dontpass'];cAddLog('Don\'t Pass pushes on 12.','info');}else{net+=cBets['dontpass']*2;cFlash('cz-dontpass','win');}}
+      net+=cResolveOneRolls(t,d1,d2); cApplyNet(net); cClearBets();
+    } else {
+      cPoint=t; cPhase='point';
+      outEl.textContent=`Point is ${t} — Roll again!`; outEl.classList.add('point-set');
+      cAddLog(`📍 Point set: ${t}. Roll ${t} before 7 to win.`,'point');
+      cMovePuck(t); net+=cResolveOneRolls(t,d1,d2); cApplyNet(net);
+    }
+  } else {
+    if(t===7){
+      outEl.textContent=`Seven-Out! Pass Line loses.`; outEl.classList.add('seven-out');
+      cAddLog(`🔥 Seven-out. Pass loses, Don't Pass wins.`,'lose');
+      if(cBets['pass']){net-=cBets['pass'];cFlash('cz-pass','lose');}
+      if(cBets['dontpass']){net+=cBets['dontpass']*2;cFlash('cz-dontpass','win');}
+      if(cBets['come']){net-=cBets['come'];cFlash('cz-come','lose');}
+      if(cBets['dontcome']){net+=cBets['dontcome']*2;cFlash('cz-dontcome','win');}
+      ['place4','place5','place6','place8','place9','place10','hard4','hard6','hard8','hard10','big6','big8'].forEach(k=>{
+        if(cBets[k]){net-=cBets[k];cFlash('cz-'+k,'lose');}
+      });
+      net+=cResolveOneRolls(t,d1,d2); cApplyNet(net); cResetPuck(); cClearBets();
+      cPoint=null; cPhase='comeout'; cAddLog('🔄 New Come-Out roll starting.','info');
+    } else if(t===cPoint){
+      outEl.textContent=`Point ${cPoint} — Pass Line wins!`; outEl.classList.add('point-win');
+      cAddLog(`✅ Point ${cPoint} made! Pass Line wins.`,'win');
+      if(cBets['pass']){net+=cBets['pass']*2;cFlash('cz-pass','win');}
+      if(cBets['dontpass']){net-=cBets['dontpass'];cFlash('cz-dontpass','lose');}
+      if(cBets['come']){net+=cBets['come']*2;cFlash('cz-come','win');}
+      net+=cResolvePlaceHard(t,d1,d2,isHard); net+=cResolveOneRolls(t,d1,d2);
+      cApplyNet(net); cResetPuck(); cClearBets();
+      cPoint=null; cPhase='comeout'; cAddLog('🔄 New Come-Out roll starting.','info');
+    } else {
+      outEl.textContent=`Rolled ${t} — Point still ${cPoint}`; outEl.classList.add('point-set');
+      cAddLog(`🎲 Rolled ${t}. Shooting for ${cPoint}.`);
+      net+=cResolvePlaceHard(t,d1,d2,isHard); net+=cResolveOneRolls(t,d1,d2);
+      cApplyNet(net,true); cRemoveWonPlace(t,isHard);
+    }
+  }
+  cUpdateWagered();
+}
+
+function cResolvePlaceHard(t,d1,d2,isHard){
+  let n=0;
+  const pp={place4:9/5,place5:7/5,place6:7/6,place8:7/6,place9:7/5,place10:9/5};
+  Object.entries(pp).forEach(([k,pay])=>{
+    const num=parseInt(k.replace('place',''));
+    if(t===num&&cBets[k]){n+=cBets[k]+Math.floor(cBets[k]*pay);cFlash('cz-'+k,'win');cAddLog(`💵 Place ${num} wins $${Math.floor(cBets[k]*pay)}.`,'win');}
+  });
+  const hp={hard4:7,hard6:9,hard8:9,hard10:7};
+  Object.entries(hp).forEach(([k,pay])=>{
+    const num=parseInt(k.replace('hard',''));
+    if(cBets[k]){
+      if(t===num&&isHard){n+=cBets[k]+cBets[k]*pay;cFlash('cz-'+k,'win');cAddLog(`🎯 Hard ${num} wins! ${pay}:1.`,'win');}
+      else if(t===num&&!isHard){n-=cBets[k];cFlash('cz-'+k,'lose');cAddLog(`Hard ${num} easy — loses.`,'lose');}
+    }
+  });
+  if(t===6&&cBets['big6']){n+=cBets['big6']*2;cFlash('cz-big6','win');}
+  if(t===8&&cBets['big8']){n+=cBets['big8']*2;cFlash('cz-big8','win');}
+  return n;
+}
+
+function cRemoveWonPlace(t,isHard){
+  [4,5,6,8,9,10].forEach(num=>{if(t===num&&cBets['place'+num]){delete cBets['place'+num];document.getElementById('cch-place'+num).innerHTML='';}});
+  [4,6,8,10].forEach(num=>{if(cBets['hard'+num]&&t===num){delete cBets['hard'+num];document.getElementById('cch-hard'+num).innerHTML='';}});
+  if(t===6&&cBets['big6']){delete cBets['big6'];document.getElementById('cch-big6').innerHTML='';}
+  if(t===8&&cBets['big8']){delete cBets['big8'];document.getElementById('cch-big8').innerHTML='';}
+}
+
+function cResolveOneRolls(t,d1,d2){
+  let n=0;
+  if(cBets['field']){
+    if([2,3,4,9,10,11,12].includes(t)){const m=(t===2||t===12)?2:1;n+=cBets['field']+cBets['field']*m;cFlash('cz-field','win');cAddLog(`🌾 Field wins! ${t} pays ${m}:1.`,'win');}
+    else{n-=cBets['field'];cFlash('cz-field','lose');cAddLog(`Field loses on ${t}.`,'lose');}
+    delete cBets['field'];document.getElementById('cch-field').innerHTML='';
+  }
+  if(cBets['any7']){if(t===7){n+=cBets['any7']+cBets['any7']*4;cFlash('cz-any7','win');cAddLog('Any 7 wins!','win');}else{n-=cBets['any7'];cFlash('cz-any7','lose');}delete cBets['any7'];document.getElementById('cch-any7').innerHTML='';}
+  if(cBets['yo11']){if(t===11){n+=cBets['yo11']+cBets['yo11']*15;cFlash('cz-yo11','win');cAddLog('🎊 Yo-Eleven! 15:1!','win');}else{n-=cBets['yo11'];cFlash('cz-yo11','lose');}delete cBets['yo11'];document.getElementById('cch-yo11').innerHTML='';}
+  if(cBets['anycraps']){if([2,3,12].includes(t)){n+=cBets['anycraps']+cBets['anycraps']*7;cFlash('cz-anycraps','win');cAddLog('Any Craps wins! 7:1!','win');}else{n-=cBets['anycraps'];cFlash('cz-anycraps','lose');}delete cBets['anycraps'];document.getElementById('cch-anycraps').innerHTML='';}
+  return n;
+}
+
+// Craps tutorial steps
+const crapsSteps=[
+  {title:'Welcome to Craps',text:'Craps is played on a large felt table. Players bet on the outcome of two dice. The game has the <strong>lowest house edge</strong> of any table game when you stick to Pass/Don\'t Pass — as low as 1.36%.',tip:'🎲 COME-OUT ODDS SNAPSHOT: 7 = 6/36 ways (16.7%), 11 = 2/36 (5.6%) → 8 instant wins (22.2%). Craps 2/3/12 = 4/36 (11.1%) instant losses. Point set = 24/36 (66.7%). Pass Line is the best starting bet — click it, then Roll!',highlight:['cz-pass'],cls:'suggest-good'},
+  {title:'The Come-Out Roll',text:'Every round starts with a Come-Out roll (puck = OFF). <strong>7 or 11</strong> = instant WIN for Pass Line (8 ways = 22.2%). <strong>2, 3, or 12</strong> = instant LOSS (4 ways = 11.1%). Any other number sets the Point (24 ways = 66.7%).',tip:'Pass bettor advantage: you have twice as many instant wins (8) as instant losses (4) on the come-out. That 2:1 win/loss ratio is why Pass Line is the cornerstone bet.',highlight:['cz-pass','cz-dontpass'],cls:'suggest-good'},
+  {title:'Best Bets by Edge',text:'Not all bets are equal. <strong>Pass/Don\'t Pass</strong> have edges under 1.5%. <strong>Place 6/8</strong> are 1.52% (6 is rolled 5 ways, 8 is rolled 5 ways — tied 2nd most common after 7). <strong>Field</strong> jumps to 5.6%. <strong>Any 7</strong> is 16.9% — nearly 12× worse than Pass Line.',tip:'6 and 8 are rolled 5 ways each out of 36 (13.9% each). Combined they hit 27.8% of rolls — nearly 1 in 3. That frequency + 7:6 payout = excellent value at only 1.52% edge.',highlight:['cz-pass','cz-place6','cz-place8'],cls:'suggest-good'},
+  {title:'The Point Phase',text:'When a Point is set, the puck flips ON. You need that number before a 7. Point 6 or 8: 5 ways to win vs 6 ways to lose (1.2:1 against). Point 5 or 9: 4 vs 6 (1.5:1 against). Point 4 or 10: 3 vs 6 (2:1 against). Seven-out probability ranges from 45–67% depending on your Point.',tip:'Seven-out risk by point: 4 or 10 = 67% chance of 7 before point · 5 or 9 = 60% · 6 or 8 = 55%. The house edge comes from this imbalance — your best defense is sticking to low-edge bets.',highlight:['cz-place4','cz-place5','cz-place6','cz-place8','cz-place9','cz-place10'],cls:'suggest-good'},
+  {title:'Free Play — You\'re Ready!',text:'Use your $500 bankroll to explore every bet. Watch the strategy coach update in real time with exact odds. Try Pass Line + Place 6/8 as your core strategy, then experiment with riskier bets to feel the edge difference firsthand.',tip:'📊 Track your bankroll over 20 rolls. Low-edge bets (Pass, Place 6/8) will last noticeably longer than high-edge bets (Any 7, Field). The math becomes visible quickly!',highlight:[],cls:'suggest-good'}
+];
+
+function setCrapsStep(i){
+  document.querySelectorAll('#craps-steps .step-btn').forEach((b,j)=>b.classList.toggle('active',i===j));
+  const s=crapsSteps[i];
+  document.getElementById('cTutTitle').textContent=s.title;
+  document.getElementById('cTutText').innerHTML=s.text;
+  document.getElementById('cStratText').textContent=s.tip;
+  document.getElementById('cStratBox').className='strategy-box '+(s.cls||'');
+  document.querySelectorAll('[id^="cz-"]').forEach(z=>z.classList.remove('highlighted'));
+  s.highlight.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('highlighted');});
+}
+
+// ══════════════════════════════════════════════
+//  BLACKJACK ENGINE
+// ══════════════════════════════════════════════
+let bjBankroll=500, bjChip=5, bjBet=0, bjPhase='bet';
+// bjPhase: 'bet' | 'playing' | 'dealer' | 'done'
+let bjPlayerCards=[], bjDealerCards=[], bjSplitCards=[], bjSplitting=false;
+let bjDealerHideIdx=1; // dealer's hidden card index
+
+const SUITS=['♠','♥','♦','♣'];
+const RANKS=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+let bjDeck=[];
+
+function bjBuildDeck(){
+  bjDeck=[];
+  for(let d=0;d<6;d++) for(let s of SUITS) for(let r of RANKS) bjDeck.push({rank:r,suit:s});
+  // shuffle
+  for(let i=bjDeck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[bjDeck[i],bjDeck[j]]=[bjDeck[j],bjDeck[i]];}
+}
+
+function bjDraw(){ if(bjDeck.length<20) bjBuildDeck(); return bjDeck.pop(); }
+
+function bjCardValue(rank){ if(rank==='A') return 11; if(['K','Q','J'].includes(rank)) return 10; return parseInt(rank); }
+
+function bjHandTotal(cards){
+  let total=0, aces=0;
+  for(const c of cards){ total+=bjCardValue(c.rank); if(c.rank==='A') aces++; }
+  while(total>21&&aces>0){ total-=10; aces--; }
+  return total;
+}
+
+function bjIsSoft(cards){
+  let total=0, aces=0;
+  for(const c of cards){ total+=bjCardValue(c.rank); if(c.rank==='A') aces++; }
+  return aces>0&&total<=21&&(total-10)<=21&&aces>=1;
+}
+
+function bjCardHTML(card, hidden=false){
+  const el=document.createElement('div');
+  const isRed=card.suit==='♥'||card.suit==='♦';
+  el.className='card deal-in'+(hidden?' face-down':'')+(isRed?' red':' black');
+  if(!hidden){
+    el.innerHTML=`<div class="card-corner">${card.rank}<br>${card.suit}</div><div class="card-suit">${card.suit}</div><div class="card-corner-br">${card.rank}<br>${card.suit}</div>`;
+  }
+  return el;
+}
+
+function bjRenderHands(revealDealer=false){
+  const ph=document.getElementById('bjPlayerHand'); ph.innerHTML='';
+  const dh=document.getElementById('bjDealerHand'); dh.innerHTML='';
+  bjPlayerCards.forEach(c=>ph.appendChild(bjCardHTML(c)));
+  bjDealerCards.forEach((c,i)=>dh.appendChild(bjCardHTML(c, !revealDealer&&i===bjDealerHideIdx)));
+
+  const pv=bjHandTotal(bjPlayerCards);
+  const soft=bjIsSoft(bjPlayerCards);
+  const pvEl=document.getElementById('bjPlayerValue');
+  if(pv>21) pvEl.innerHTML=`<span class="bust-label">BUST — ${pv}</span>`;
+  else if(pv===21&&bjPlayerCards.length===2) pvEl.innerHTML=`<span class="bj-label">BLACKJACK! 🎉</span>`;
+  else pvEl.textContent=(soft&&pv<=21?'Soft ':'') + pv;
+
+  const dvEl=document.getElementById('bjDealerValue');
+  if(revealDealer){
+    const dv=bjHandTotal(bjDealerCards);
+    if(dv>21) dvEl.innerHTML=`<span class="bust-label">BUST — ${dv}</span>`;
+    else if(dv===21&&bjDealerCards.length===2) dvEl.innerHTML=`<span class="bj-label">BLACKJACK!</span>`;
+    else dvEl.textContent=dv;
+  } else {
+    dvEl.textContent=bjCardValue(bjDealerCards[0].rank)+' + ?';
+  }
+}
+
+function bjSelectChip(v,btn){
+  bjChip=v;
+  document.querySelectorAll('#panel-blackjack .chip-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function bjPlaceBet(){
+  if(bjPhase!=='bet'){bjBjLog('Betting only allowed before the deal.','info');return;}
+  if(bjBankroll<bjChip){bjBjLog('Not enough funds!','lose');return;}
+  bjBankroll-=bjChip; bjBet+=bjChip;
+  document.getElementById('bjBankroll').textContent='$'+bjBankroll;
+  document.getElementById('bjBetDisplay').textContent='$'+bjBet;
+  document.getElementById('bjBetAmt').textContent='$'+bjBet;
+  document.getElementById('bjBetLabel').style.display='none';
+  // Add chip to circle
+  const stack=document.getElementById('bjBetChips');
+  const t=document.createElement('div'); t.className=`chip-token c${bjChip>25?100:bjChip}`; t.textContent='$'+bjChip;
+  stack.appendChild(t);
+  bjBjLog(`Placed $${bjChip}. Total bet: $${bjBet}.`);
+  bjUpdateStrategy();
+}
+
+function bjClearBet(){
+  if(bjPhase!=='bet'){bjBjLog('Cannot clear bet during hand.','info');return;}
+  bjBankroll+=bjBet; bjBet=0;
+  document.getElementById('bjBankroll').textContent='$'+bjBankroll;
+  document.getElementById('bjBetDisplay').textContent='$0';
+  document.getElementById('bjBetAmt').textContent='$0';
+  document.getElementById('bjBetLabel').style.display='';
+  document.getElementById('bjBetChips').innerHTML='';
+}
+
+function bjSetButtons(phase){
+  const inPlay=phase==='playing';
+  const isDone=phase==='done';
+  document.getElementById('bjDealBtn').disabled=(phase==='playing'||phase==='dealer'||phase==='done');
+  document.getElementById('bjHitBtn').disabled=!inPlay;
+  document.getElementById('bjStandBtn').disabled=!inPlay;
+  document.getElementById('bjDoubleBtn').disabled=!(inPlay&&bjPlayerCards.length===2&&bjBankroll>=bjBet);
+  document.getElementById('bjSplitBtn').disabled=!(inPlay&&bjPlayerCards.length===2&&bjPlayerCards[0].rank===bjPlayerCards[1].rank&&bjBankroll>=bjBet);
+  document.getElementById('bjClearBtn').disabled=phase!=='bet';
+  // Next Hand button: only visible after hand ends
+  const nextBtn=document.getElementById('bjNextBtn');
+  nextBtn.style.display=isDone?'':'none';
+  nextBtn.disabled=!isDone;
+}
+
+function bjDeal(){
+  if(bjBet===0){bjBjLog('⚠️ Place a bet first!','info');return;}
+  if(bjDeck.length<20) bjBuildDeck();
+  bjPlayerCards=[bjDraw(),bjDraw()];
+  bjDealerCards=[bjDraw(),bjDraw()];
+  bjPhase='playing';
+  bjRenderHands();
+  bjSetButtons('playing');
+  document.getElementById('bjDealBtn').disabled=true;
+
+  const pv=bjHandTotal(bjPlayerCards);
+  const dv=bjHandTotal(bjDealerCards);
+
+  // Check for insurance
+  if(bjDealerCards[0].rank==='A'){
+    document.getElementById('bjInsuranceRow').style.display='block';
+    bjBjLog('Dealer shows Ace. Insurance offered (2:1 — not recommended, 7.7% edge).','info');
+  } else {
+    document.getElementById('bjInsuranceRow').style.display='none';
+  }
+
+  // Check BJ
+  if(pv===21&&dv===21){ bjReveal(); bjBjLog('Both have Blackjack — Push!','info'); bjEndHand(0); return; }
+  if(pv===21){ bjReveal(); bjBjLog('🎉 Blackjack! You win 3:2!','win'); bjEndHand(Math.floor(bjBet*1.5)); return; }
+  if(dv===21){ bjReveal(); bjBjLog('Dealer has Blackjack. You lose.','lose'); bjEndHand(-bjBet); return; }
+
+  bjBjLog(`You have ${pv}. Dealer shows ${bjCardValue(bjDealerCards[0].rank)}.`);
+  bjUpdateStrategy();
+}
+
+function bjHit(){
+  bjPlayerCards.push(bjDraw());
+  bjRenderHands();
+  document.getElementById('bjInsuranceRow').style.display='none';
+  document.getElementById('bjDoubleBtn').disabled=true;
+  document.getElementById('bjSplitBtn').disabled=true;
+  const pv=bjHandTotal(bjPlayerCards);
+  bjBjLog(`Hit — hand: ${pv}`);
+  bjUpdateStrategy();
+  if(pv>21){ bjReveal(); bjBjLog('💥 Bust! You lose.','lose'); bjEndHand(-bjBet); }
+  else if(pv===21){ bjBjLog('21 — perfect! Standing automatically.'); bjStand(); }
+}
+
+function bjStand(){
+  bjPhase='dealer';
+  document.getElementById('bjInsuranceRow').style.display='none';
+  bjSetButtons('dealer');
+  bjBjLog('Standing. Dealer plays now…');
+  setTimeout(bjDealerPlay, 400);
+}
+
+function bjDouble(){
+  if(bjBankroll<bjBet){bjBjLog('Not enough to double!','lose');return;}
+  bjBankroll-=bjBet; bjBet*=2;
+  document.getElementById('bjBankroll').textContent='$'+bjBankroll;
+  document.getElementById('bjBetDisplay').textContent='$'+bjBet;
+  document.getElementById('bjBetAmt').textContent='$'+bjBet;
+  const t=document.createElement('div'); t.className='chip-token c'+( bjChip>25?100:bjChip); t.textContent='2×';
+  document.getElementById('bjBetChips').appendChild(t);
+  bjPlayerCards.push(bjDraw());
+  bjRenderHands();
+  bjBjLog(`Doubled down to $${bjBet}. One card drawn.`);
+  bjUpdateStrategy();
+  const pv=bjHandTotal(bjPlayerCards);
+  if(pv>21){ bjReveal(); bjBjLog('💥 Bust on double! You lose.','lose'); bjEndHand(-bjBet); }
+  else bjStand();
+}
+
+function bjSplit(){
+  if(bjBankroll<bjBet){bjBjLog('Not enough to split!','lose');return;}
+  bjBankroll-=bjBet;
+  document.getElementById('bjBankroll').textContent='$'+bjBankroll;
+  bjBjLog(`Split! Playing first hand of ${bjPlayerCards[0].rank}'s. Second hand plays after.`,'info');
+  bjSplitCards=[bjPlayerCards[1]];
+  bjPlayerCards=[bjPlayerCards[0],bjDraw()];
+  bjRenderHands();
+  bjUpdateStrategy();
+  bjBjLog(`First split hand: ${bjHandTotal(bjPlayerCards)}.`);
+}
+
+function bjInsurance(){
+  const insCost=Math.floor(bjBet/2);
+  if(bjBankroll<insCost){bjBjLog('Not enough for insurance.','lose');return;}
+  bjBankroll-=insCost;
+  document.getElementById('bjBankroll').textContent='$'+bjBankroll;
+  bjBjLog(`⚠️ Insurance placed ($${insCost}). Remember: this bet has a 7.7% house edge and is almost never correct strategy.`,'info');
+  document.getElementById('bjInsuranceRow').style.display='none';
+}
+
+function bjReveal(){ bjRenderHands(true); }
+
+function bjDealerPlay(){
+  bjReveal();
+  const pv=bjHandTotal(bjPlayerCards);
+  const animate=()=>{
+    const dv=bjHandTotal(bjDealerCards);
+    if(dv<17||(dv===17&&bjIsSoft(bjDealerCards))){
+      bjBjLog(`Dealer has ${dv}. Hits…`);
+      setTimeout(()=>{ bjDealerCards.push(bjDraw()); bjReveal(); animate(); },600);
+    } else {
+      const dv2=bjHandTotal(bjDealerCards);
+      const pv2=bjHandTotal(bjPlayerCards);
+      bjBjLog(`Dealer stands on ${dv2}.`);
+      if(dv2>21){ bjBjLog('Dealer busts! You win! 🎉','win'); bjEndHand(bjBet); }
+      else if(pv2>dv2){ bjBjLog(`You win! ${pv2} beats ${dv2}. 🎉`,'win'); bjEndHand(bjBet); }
+      else if(pv2===dv2){ bjBjLog(`Push — tie at ${pv2}. Bet returned.`,'info'); bjEndHand(0); }
+      else { bjBjLog(`Dealer wins. ${dv2} beats ${pv2}.`,'lose'); bjEndHand(-bjBet); }
+    }
+  };
+  animate();
+}
+
+function bjEndHand(net){
+  bjPhase='done';
+  bjBankroll+=bjBet+net;
+  document.getElementById('bjBankroll').textContent='$'+bjBankroll;
+  if(net>0){const el=document.getElementById('bjBankroll');el.classList.add('win-anim');setTimeout(()=>el.classList.remove('win-anim'),400);}
+  if(net>0) bjBjLog(`💰 Net: +$${net}. Bankroll: $${bjBankroll}.`,'win');
+  else if(net<0) bjBjLog(`📉 Net: -$${Math.abs(net)}. Bankroll: $${bjBankroll}.`,'lose');
+  else bjBjLog(`Push — bet returned. Bankroll: $${bjBankroll}.`,'info');
+  if(bjBankroll===0){bjBjLog('😢 Bankroll gone — refilled to $500.','info');bjBankroll=500;document.getElementById('bjBankroll').textContent='$500';}
+  bjBjLog('📋 Review the cards above, then click Next Hand ➜ when ready.','info');
+  bjSetButtons('done');
+  bjUpdateStrategy();
+}
+
+function bjNextHand(){
+  bjBet=0; bjPhase='bet'; bjPlayerCards=[]; bjDealerCards=[]; bjSplitCards=[];
+  document.getElementById('bjPlayerHand').innerHTML='';
+  document.getElementById('bjDealerHand').innerHTML='';
+  document.getElementById('bjPlayerValue').textContent='';
+  document.getElementById('bjDealerValue').textContent='';
+  document.getElementById('bjBetChips').innerHTML='';
+  document.getElementById('bjBetLabel').style.display='';
+  document.getElementById('bjBetDisplay').textContent='$0';
+  document.getElementById('bjBetAmt').textContent='$0';
+  document.getElementById('bjInsuranceRow').style.display='none';
+  bjSetButtons('bet');
+  bjBjLog('✨ New hand ready — place your bet!','info');
+  bjUpdateStrategy();
+}
+
+// BLACKJACK STRATEGY ENGINE
+function bjGetBasicStrategy(playerCards, dealerUpCard){
+  const pv=bjHandTotal(playerCards);
+  const soft=bjIsSoft(playerCards)&&playerCards.length===2;
+  const isPair=playerCards.length===2&&playerCards[0].rank===playerCards[1].rank;
+  const du=bjCardValue(dealerUpCard.rank);
+  const weak=[4,5,6]; // dealer bust cards
+  const strong=[7,8,9,10,11]; // dealer strong cards
+
+  if(isPair){
+    const r=playerCards[0].rank;
+    if(r==='A') return {move:'SPLIT',reason:'Always split Aces — you get two chances at 21. A+any 10-value = Blackjack (3:2). Never sacrifice this opportunity.'};
+    if(r==='8') return {move:'SPLIT',reason:'Always split 8s. A pair of 8s = 16 (worst hand). Two separate 8s each have strong potential. Split regardless of dealer card.'};
+    if(r==='9'){if(du===7||du===10||du===11) return {move:'STAND',reason:'9+9 = 18. Stand against dealer 7/10/A — you already have a strong hand. Only split against 2–6 or 8–9.'};return {move:'SPLIT',reason:'Split 9s against this dealer card — two 9s each have good winning potential vs a weak dealer upcard.'};};
+    if(r==='7'){if(du<=7) return {move:'SPLIT',reason:'Split 7s vs dealer 2–7. You may land a 17 on each hand. Against 8+ the dealer is strong, so take a hit instead.'};return {move:'HIT',reason:'Don\'t split 7s vs dealer 8–A — you\'d be building weak hands against a strong dealer. Hit for a better total.'};};
+    if(r==='6'){if(du<=6) return {move:'SPLIT',reason:'Split 6s vs dealer 2–6. Dealer is weak and likely to bust. Build two independent hands against that bust potential.'};return {move:'HIT',reason:'Hit 6+6 vs dealer 7+. Dealer is too strong to bank on a bust. Aim to improve your total.'};};
+    if(r==='5') return {move:'DOUBLE',reason:'Never split 5s. A pair of 5s = 10 — a great double down opportunity. Splitting creates two weak starting hands of 5.'};
+    if(r==='4'){if(du===5||du===6) return {move:'SPLIT',reason:'Split 4s only vs dealer 5–6 (most likely to bust). Otherwise hit.'};return {move:'HIT',reason:'Hit 4s. Splitting 4s creates two bad starting hands. Better to take a card and aim for a solid total.'};};
+    if(r==='3'||r==='2'){if(du<=7) return {move:'SPLIT',reason:`Split ${r}s vs dealer 2–7. Weak dealer makes it worth building two independent hands.`};return {move:'HIT',reason:'Hit — dealer is too strong to justify the split.'};};
+    if(r==='10'||r==='J'||r==='Q'||r==='K') return {move:'STAND',reason:'Never split 10s. A 20 is one of the strongest hands possible. Splitting risks turning a near-certain win into two uncertain hands.'};
+  }
+
+  if(soft){
+    if(pv>=19) return {move:'STAND',reason:`Soft ${pv} is a strong hand. Stand — you can\'t bust taking a card but you don\'t need to risk losing this strong position.`};
+    if(pv===18){
+      if(du>=9||du===11) return {move:'HIT',reason:'Hit Soft 18 vs dealer 9/10/A — dealer has strong up-card and is unlikely to bust. You need to improve.'};
+      if(du>=3&&du<=6) return {move:'DOUBLE',reason:'Double Soft 18 vs dealer 3–6. Dealer is weak (likely to bust). Double your bet to maximize profit.'};
+      return {move:'STAND',reason:'Stand Soft 18 vs dealer 7–8. You\'re likely ahead. No need to risk the hand.'};
+    }
+    if(pv===17){if(du>=3&&du<=6) return {move:'DOUBLE',reason:'Double Soft 17 vs dealer 3–6. Dealer is most likely to bust here. One more card won\'t hurt (Ace converts to 1 if needed).'};return {move:'HIT',reason:'Hit Soft 17. You can\'t bust and have everything to gain. Dealer is not weak enough to stand here.'};};
+    if(pv<=16){if(du>=4&&du<=6) return {move:'DOUBLE',reason:'Double this soft hand vs weak dealer. You can\'t bust and dealer is very likely to bust with 4, 5, or 6 up.'};return {move:'HIT',reason:'Hit soft low hands. You cannot bust and need a higher total to compete.'};};
+  }
+
+  // Hard totals
+  if(pv>=17) return {move:'STAND',reason:`Hard ${pv} — always stand. Risk of busting is too high (${pv>17?'very high':'high'}). Let the dealer take the bust risk.`};
+  if(pv===16){if(du>=7) return {move:'HIT',reason:'Hard 16 is the worst hand in blackjack. Vs dealer 7–A you must hit — standing loses even more often because dealer will reach 17+ easily.'};return {move:'STAND',reason:'Stand Hard 16 vs dealer 2–6. Dealer is likely to bust. Don\'t risk your own bust when the dealer is vulnerable.'};};
+  if(pv===15){if(du>=7) return {move:'HIT',reason:'Hit Hard 15 vs dealer 7+. Dealer strength means you need a better total.'};return {move:'STAND',reason:'Stand 15 vs dealer 2–6. Dealer bust probability is 42% with a 6 up. Let them dig their own hole.'};};
+  if(pv<=14&&pv>=13){if(du<=6) return {move:'STAND',reason:`Stand ${pv} vs dealer 2–6. Dealer is weak. Let the dealer bust rather than risk your own bust.`};return {move:'HIT',reason:`Hit ${pv} vs dealer 7+. You need a higher total to compete against a strong dealer card.`};};
+  if(pv===12){if(du>=4&&du<=6) return {move:'STAND',reason:'Stand 12 vs dealer 4–6. Even 12 is worth keeping when the dealer is this weak (bust probability 40%+).'};return {move:'HIT',reason:'Hit 12 vs dealer 2, 3, or 7+. You have low bust risk and need a better total.'};};
+  if(pv===11) return {move:'DOUBLE',reason:'Double 11 vs most dealer cards — premium opportunity. Any 10-value card (30.8% probability) gives you 21. Even an 8 makes 19.'};
+  if(pv===10){if(du<=9) return {move:'DOUBLE',reason:'Double 10 vs dealer 2–9. You\'re likely to reach 20 and dealer is in a tough spot. Maximize the bet.'};return {move:'HIT',reason:'Hit 10 vs dealer 10/A. Dealer is too strong to double. But you\'re still in a good position — hit for a high total.'};};
+  if(pv===9){if(du>=3&&du<=6) return {move:'DOUBLE',reason:'Double 9 vs dealer 3–6. Dealer is vulnerable. Risk the double — any 10-value gives you 19.'};return {move:'HIT',reason:'Hit 9 vs dealer 2 or 7+. Dealer is not weak enough to justify doubling.'};};
+  if(pv<=8) return {move:'HIT',reason:`Hit ${pv} — you cannot bust and need a much higher total. Always take a card on 8 or less.`};
+
+  return {move:'HIT',reason:'Uncertain situation — taking a card is generally safest.'};
+}
+
+function bjUpdateStrategy(){
+  const box=document.getElementById('bjStratBox');
+  const txt=document.getElementById('bjStratText');
+  if(bjPhase==='bet'){
+    box.className='strategy-box suggest-good';
+    txt.textContent=`You have $${bjBankroll} and a bet of $${bjBet}. Place your chips on the circle and hit Deal. A good rule: never bet more than 5% of your bankroll on a single hand ($${Math.floor(bjBankroll*0.05)} max recommended).`;
+    return;
+  }
+  if(bjPhase==='playing'&&bjPlayerCards.length>0&&bjDealerCards.length>0){
+    const pv=bjHandTotal(bjPlayerCards);
+    const du=bjDealerCards[0];
+    const strat=bjGetBasicStrategy(bjPlayerCards,du);
+    const isPair=bjPlayerCards.length===2&&bjPlayerCards[0].rank===bjPlayerCards[1].rank;
+    const soft=bjIsSoft(bjPlayerCards)&&bjPlayerCards.length===2;
+    const handDesc=(soft?'Soft ':'')+(isPair?`Pair of ${bjPlayerCards[0].rank}'s`:pv.toString());
+    box.className='strategy-box suggest-good';
+    txt.textContent=`🎯 Basic Strategy says: ${strat.move} — Hand: ${handDesc} vs Dealer ${du.rank}. ${strat.reason}`;
+    // color code
+    if(strat.move==='STAND') box.className='strategy-box suggest-caution';
+    if(strat.move==='DOUBLE'||strat.move==='SPLIT') box.className='strategy-box suggest-good';
+    // Log it
+    bjBjLog(`📊 Strategy: ${strat.move} (${handDesc} vs ${du.rank})`, 'strategy');
+  }
+  if(bjPhase==='done'){
+    box.className='strategy-box suggest-good';
+    txt.textContent='Hand complete. Study the final cards, then click Next Hand ➜ to continue. Basic Strategy reduces the house edge to ~0.5% — match the coach\'s recommendation every time to play optimally.';
+  }
+}
+
+function bjBjLog(msg,type=''){
+  const log=document.getElementById('bjLog');
+  const e=document.createElement('div'); e.className='log-entry'+(type?' '+type:''); e.textContent=msg;
+  log.appendChild(e); log.scrollTop=log.scrollHeight;
+  while(log.children.length>40) log.removeChild(log.firstChild);
+}
+
+// BJ Tutorial Steps
+const bjSteps=[
+  {title:'Welcome to Blackjack',text:'Blackjack is the casino game with the lowest house edge — <strong>0.5% with perfect Basic Strategy</strong>. You play against the dealer, not other players. Goal: get closer to 21 than the dealer without going over.',tip:'Place a chip on the bet circle and hit Deal. The strategy coach will guide every decision in real time.',cls:'suggest-good'},
+  {title:'Card Values',text:'Number cards = face value. J, Q, K = 10. Ace = 1 <em>or</em> 11. A "soft" hand has an Ace counted as 11 (can\'t bust if you hit). Blackjack = Ace + any 10-value on the first two cards — pays <strong>3:2</strong>!',tip:'Tip: With a soft hand, you can always hit without fear of busting — the Ace will convert to 1 if needed.',cls:'suggest-good'},
+  {title:'Your Four Moves',text:'<strong>Hit:</strong> Take a card. <strong>Stand:</strong> Keep your hand. <strong>Double Down:</strong> Double your bet, take one final card (best on 10 or 11). <strong>Split:</strong> Separate a matching pair into two hands. Each move is right or wrong depending on dealer\'s up-card.',tip:'The dealer plays automatically by fixed rules: hits 16 or less, stands on 17+. You have the advantage of acting first.',cls:''},
+  {title:'Basic Strategy',text:'Basic Strategy is a mathematically proven set of decisions that minimizes house edge. It tells you the correct move for every hand combination. The strategy coach in this app gives you the exact recommendation after every card.',tip:'📊 Memorize this order of importance: Never split 10s or 5s. Always split Aces and 8s. Always double 11 vs dealer 2–10.',cls:'suggest-good'},
+  {title:'Free Play — You\'re Ready!',text:'You now know enough to play correctly. Watch the strategy box — it updates after every action with the recommended move and the reason why. Start with small bets and observe how Basic Strategy feels over many hands.',tip:'Goal: make every decision match the Strategy Coach recommendation. That\'s how you master blackjack.',cls:'suggest-good'}
+];
+
+function setBjStep(i){
+  document.querySelectorAll('#bj-steps .step-btn').forEach((b,j)=>b.classList.toggle('active',i===j));
+  const s=bjSteps[i];
+  document.getElementById('bjTutTitle').textContent=s.title;
+  document.getElementById('bjTutText').innerHTML=s.text;
+  document.getElementById('bjStratText').textContent=s.tip;
+  document.getElementById('bjStratBox').className='strategy-box '+(s.cls||'');
+}
+
+// ── INIT ──
+bjBuildDeck();
+setDieFace(1,1); setDieFace(2,1);
+bjSetButtons('bet');
+</script>
+</body>
+</html>
