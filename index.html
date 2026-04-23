@@ -92,19 +92,14 @@ header p{font-size:1.5rem;color:var(--ivory-dim);font-style:italic;margin-top:0.
 .row-props{display:grid;grid-template-columns:0.5fr 0.5fr 1fr 1fr 1fr;gap:4px}
 .bet-zone{background:var(--felt);border:1.5px solid rgba(201,168,76,0.35);border-radius:4px;
   padding:7px 5px;text-align:center;cursor:pointer;transition:all 0.18s;position:relative;
-  min-height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
 .bet-zone:hover{background:var(--felt-light);border-color:var(--gold);box-shadow:0 0 10px rgba(201,168,76,0.3)}
 .bet-zone.highlighted{border-color:var(--gold-light)!important;box-shadow:0 0 16px rgba(201,168,76,0.6)!important;animation:pulse 1.2s ease-in-out infinite}
 .bet-zone.win-flash{background:#1a4a1a!important;border-color:#4caf50!important;box-shadow:0 0 20px rgba(76,175,80,0.8)!important}
 .bet-zone.lose-flash{background:#4a1a1a!important;border-color:#f44336!important;box-shadow:0 0 20px rgba(244,67,54,0.8)!important}
-/* Persistent result colours — cleared only when next bet placed */
+/* Persistent result colours — cleared when Roll Dice is pressed */
 .bet-zone.zone-won{background:#122b12!important;border-color:#4caf50!important;box-shadow:0 0 10px rgba(76,175,80,0.35)!important}
 .bet-zone.zone-lost{background:#2b1212!important;border-color:#e53935!important;box-shadow:0 0 10px rgba(229,57,53,0.35)!important}
-/* Come-bet arrow badge */
-.come-arrow{position:absolute;top:3px;left:3px;background:rgba(201,168,76,0.92);color:#000;
-  font-size:0.7rem;font-family:'Playfair Display',serif;font-weight:900;padding:2px 6px;
-  border-radius:3px;letter-spacing:0.04em;animation:arrowPop 0.4s ease;z-index:8;pointer-events:none}
-@keyframes arrowPop{from{transform:scale(0.5);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes pulse{0%,100%{box-shadow:0 0 8px rgba(201,168,76,0.4)}50%{box-shadow:0 0 22px rgba(201,168,76,0.9)}}
 .bet-label{font-size:clamp(0.7rem,1.6vw,1rem);color:var(--ivory);letter-spacing:0.06em;text-transform:uppercase;line-height:1.2}
 .bet-label.large{font-size:clamp(1rem,2.2vw,1.35rem);font-weight:700}
@@ -116,6 +111,25 @@ header p{font-size:1.5rem;color:var(--ivory-dim);font-style:italic;margin-top:0.
   font-family:'Playfair Display',serif;box-shadow:0 2px 4px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.2);color:white}
 .chip-token.c5{background:var(--chip-red)}.chip-token.c10{background:var(--chip-blue)}
 .chip-token.c25{background:var(--chip-green)}.chip-token.c100{background:var(--chip-black)}
+
+/* ── WIN/LOSS POPUP ── */
+#netPopup{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.6);
+  background:rgba(10,10,10,0.92);border-radius:16px;padding:0.7rem 2.2rem;
+  font-family:'Playfair Display',serif;font-size:2.8rem;font-weight:900;
+  letter-spacing:0.05em;pointer-events:none;z-index:9999;
+  opacity:0;transition:opacity 0.15s ease,transform 0.15s ease;
+  box-shadow:0 8px 40px rgba(0,0,0,0.8);white-space:nowrap;
+  border:2px solid transparent;
+}
+#netPopup.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+#netPopup.win{color:#4caf50;border-color:rgba(76,175,80,0.5);text-shadow:0 0 24px rgba(76,175,80,0.7);}
+#netPopup.lose{color:#ef5350;border-color:rgba(239,83,80,0.5);text-shadow:0 0 24px rgba(239,83,80,0.7);}
+@keyframes popIn{0%{transform:translate(-50%,-50%) scale(0.5);opacity:0}
+  30%{transform:translate(-50%,-50%) scale(1.12);opacity:1}
+  60%{transform:translate(-50%,-50%) scale(0.97)}
+  100%{transform:translate(-50%,-50%) scale(1)}}
+#netPopup.show{animation:popIn 0.25s ease forwards;}
 .puck{width:28px;height:28px;border-radius:50%;border:3px solid #333;display:flex;
   align-items:center;justify-content:center;font-size:0.5rem;font-weight:900;
   font-family:'Playfair Display',serif;position:absolute;top:3px;right:3px;
@@ -137,71 +151,85 @@ header p{font-size:1.5rem;color:var(--ivory-dim);font-style:italic;margin-top:0.
 .outcome.point-set{color:var(--gold)}.outcome.seven-out{color:#f44336;font-weight:700}.outcome.point-win{color:#4caf50;font-weight:700}
 
 /* ══════════════════════════════════
-   BLACKJACK TABLE
+   BLACKJACK TABLE — compact mobile-first
 ══════════════════════════════════ */
-.bj-table{background:var(--felt-dark);border:8px solid #5a3a10;border-radius:50% / 30%;
-  box-shadow:0 0 0 2px var(--gold-dark),0 0 0 4px #2a1a05,0 20px 60px rgba(0,0,0,0.8);
-  padding:2rem 2.5rem 1.5rem;margin-bottom:1.2rem;position:relative;min-height:300px;
-  display:flex;flex-direction:column;align-items:center;gap:1rem;overflow:hidden}
+.bj-table{background:var(--felt-dark);border:6px solid #5a3a10;border-radius:16px;
+  box-shadow:0 0 0 2px var(--gold-dark),0 0 0 3px #2a1a05,0 12px 40px rgba(0,0,0,0.8);
+  padding:0.9rem 1rem 0.8rem;margin-bottom:0.8rem;position:relative;
+  display:flex;flex-direction:column;align-items:center;gap:0.5rem;overflow:hidden}
 .bj-table::before{content:'BLACKJACK PAYS 3 TO 2 · DEALER MUST HIT SOFT 17';
-  font-family:'Playfair Display',serif;font-size:0.65rem;letter-spacing:0.2em;
-  color:rgba(201,168,76,0.4);text-align:center;margin-bottom:0.3rem}
+  font-family:'Playfair Display',serif;font-size:0.6rem;letter-spacing:0.18em;
+  color:rgba(201,168,76,0.35);text-align:center}
 .bj-table::after{content:'';position:absolute;inset:0;
   background:radial-gradient(ellipse at 50% 20%,rgba(255,255,255,0.03) 0%,transparent 65%);pointer-events:none}
 
-.bj-section-label{font-family:'Playfair Display',serif;font-size:0.95rem;letter-spacing:0.2em;
+.bj-section-label{font-family:'Playfair Display',serif;font-size:0.75rem;letter-spacing:0.2em;
   color:rgba(201,168,76,0.5);text-transform:uppercase;text-align:center}
+.bj-split-label{font-family:'Playfair Display',serif;font-size:0.7rem;letter-spacing:0.15em;
+  color:rgba(201,168,76,0.6);text-transform:uppercase;text-align:center;margin-bottom:0.2rem;
+  padding:2px 8px;border-radius:10px;background:rgba(201,168,76,0.08)}
+.bj-split-label.active{color:var(--gold-light);background:rgba(201,168,76,0.18);
+  box-shadow:0 0 8px rgba(201,168,76,0.3)}
 
 /* Card rendering */
-.hand-area{display:flex;gap:0.8rem;justify-content:center;align-items:flex-start;flex-wrap:wrap;min-height:130px}
-.card{width:90px;height:130px;background:var(--card-bg);border-radius:9px;
-  border:2px solid #ddd;box-shadow:3px 3px 8px rgba(0,0,0,0.5),inset 0 0 0 3px rgba(0,0,0,0.04);
+.hand-area{display:flex;gap:0.5rem;justify-content:center;align-items:flex-start;flex-wrap:wrap;min-height:100px}
+.card{width:72px;height:104px;background:var(--card-bg);border-radius:7px;
+  border:2px solid #ddd;box-shadow:2px 2px 6px rgba(0,0,0,0.5),inset 0 0 0 2px rgba(0,0,0,0.04);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  font-family:'Playfair Display',serif;font-weight:700;font-size:1.6rem;
+  font-family:'Playfair Display',serif;font-weight:700;font-size:1.3rem;
   position:relative;transition:transform 0.3s,opacity 0.3s;user-select:none}
 .card.deal-in{animation:dealIn 0.35s ease-out}
-@keyframes dealIn{from{transform:translateY(-30px) scale(0.8);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+@keyframes dealIn{from{transform:translateY(-24px) scale(0.8);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
 .card.red{color:#c0392b}.card.black{color:#111}.card.face-down{background:#1a3a6a;color:transparent;border-color:#1a3a6a}
-.card.face-down::after{content:'🂠';font-size:2.8rem;color:rgba(255,255,255,0.15);position:absolute}
-.card-corner{position:absolute;top:5px;left:7px;font-size:1rem;line-height:1.15;text-align:center}
-.card-corner-br{position:absolute;bottom:5px;right:7px;font-size:1rem;line-height:1.15;text-align:center;transform:rotate(180deg)}
-.card-suit{font-size:2rem;line-height:1}
-.hand-value{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:var(--gold-light);text-align:center;min-height:1.5em}
+.card.face-down::after{content:'🂠';font-size:2.2rem;color:rgba(255,255,255,0.15);position:absolute}
+.card-corner{position:absolute;top:3px;left:4px;font-size:1.15rem;line-height:1.1;text-align:center;font-weight:900}
+.card-corner-br{position:absolute;bottom:3px;right:4px;font-size:1.15rem;line-height:1.1;text-align:center;transform:rotate(180deg);font-weight:900}
+.card-suit{font-size:1.9rem;line-height:1}
+.hand-value{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--gold-light);text-align:center;min-height:1.4em}
 .bust-label{color:#f44336}.bj-label{color:#4caf50}
 
-/* BJ Bet zone */
-.bj-bet-circle{width:100px;height:100px;border-radius:50%;border:2px dashed rgba(201,168,76,0.5);
+/* BJ bottom bar: bet circle + bankroll + deal all in one row */
+.bj-bottom-bar{display:flex;align-items:center;justify-content:space-between;
+  gap:0.35rem;width:100%;padding:0;flex-wrap:nowrap}
+
+/* Bet circle — compact */
+.bj-bet-circle{width:68px;height:68px;border-radius:50%;border:2px dashed rgba(201,168,76,0.5);
   display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;
+  flex-shrink:0;
   transition:all 0.2s;font-family:'Playfair Display',serif;color:rgba(201,168,76,0.5);
-  font-size:1rem;letter-spacing:0.1em;text-transform:uppercase;position:relative}
+  font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;position:relative}
 .bj-bet-circle:hover{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,0.05)}
 .bj-bet-circle .chip-stack{position:absolute;inset:0;display:flex;flex-wrap:wrap;
-  align-items:center;justify-content:center;gap:3px;pointer-events:none}
+  align-items:center;justify-content:center;gap:2px;pointer-events:none}
 .bj-insurance-zone{background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.25);
-  border-radius:20px;padding:0.5rem 1.4rem;cursor:pointer;font-family:'Playfair Display',serif;
-  font-size:1rem;color:var(--ivory-dim);letter-spacing:0.1em;text-align:center;transition:all 0.2s}
+  border-radius:20px;padding:0.4rem 1rem;cursor:pointer;font-family:'Playfair Display',serif;
+  font-size:0.9rem;color:var(--ivory-dim);letter-spacing:0.08em;text-align:center;transition:all 0.2s}
 .bj-insurance-zone:hover{border-color:var(--gold);color:var(--gold)}
 
-/* BJ action buttons */
-.bj-actions{display:flex;gap:0.6rem;flex-wrap:wrap;justify-content:center;margin-top:0.5rem}
-.bj-btn{padding:0.7rem 1.5rem;font-family:'Playfair Display',serif;font-size:1.15rem;
-  letter-spacing:0.08em;border-radius:3px;cursor:pointer;border:none;transition:all 0.18s;text-transform:uppercase}
+/* Bankroll compact inline */
+.bj-bankroll-inline{display:flex;flex-direction:column;align-items:center;gap:0.1rem;flex-shrink:0}
+.bj-bankroll-inline .bankroll-label{font-size:0.6rem;letter-spacing:0.1em}
+.bj-bankroll-inline .bankroll-amount{font-size:1.3rem}
+
+/* Chip buttons compact */
+.bj-chips-inline{display:flex;flex-direction:column;gap:0.2rem;align-items:center;flex-shrink:0}
+.bj-chips-inline .chip-selector-label{font-size:0.6rem}
+.bj-chips-inline .chip-buttons{gap:3px}
+.bj-chips-inline .chip-btn{width:36px;height:36px;font-size:0.68rem;border-width:2px}
+
+/* BJ action buttons — two rows, compact */
+.bj-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.4rem;margin-top:0.5rem;width:100%}
+.bj-btn{padding:0.6rem 0.4rem;font-family:'Playfair Display',serif;font-size:1rem;
+  letter-spacing:0.04em;border-radius:4px;cursor:pointer;border:none;transition:all 0.18s;text-transform:uppercase;width:100%}
 .bj-btn:disabled{opacity:0.3;cursor:not-allowed}
 .bj-btn-deal{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#000;font-weight:900;
-  box-shadow:0 4px 12px rgba(201,168,76,0.4)}
-.bj-btn-deal:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 20px rgba(201,168,76,0.5)}
+  box-shadow:0 3px 10px rgba(201,168,76,0.4);grid-column:1/-1;font-size:1.1rem;padding:0.7rem}
+.bj-btn-deal:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 16px rgba(201,168,76,0.5)}
 .bj-btn-hit{background:linear-gradient(135deg,#1e8449,#145a32);color:#fff;font-weight:700}
-.bj-btn-hit:hover:not(:disabled){background:linear-gradient(135deg,#27ae60,#1e8449)}
 .bj-btn-stand{background:linear-gradient(135deg,#922b21,#641e16);color:#fff;font-weight:700}
-.bj-btn-stand:hover:not(:disabled){background:linear-gradient(135deg,#c0392b,#922b21)}
 .bj-btn-double{background:linear-gradient(135deg,#1a5276,#0d2b45);color:#fff;font-weight:700}
-.bj-btn-double:hover:not(:disabled){background:linear-gradient(135deg,#2874a6,#1a5276)}
 .bj-btn-split{background:linear-gradient(135deg,#6c3483,#4a235a);color:#fff;font-weight:700}
-.bj-btn-split:hover:not(:disabled){background:linear-gradient(135deg,#8e44ad,#6c3483)}
-.bj-btn-next{background:linear-gradient(135deg,#b7950b,#7d6608);color:#fff;font-weight:700;font-size:1.1rem}
-.bj-btn-next:hover:not(:disabled){background:linear-gradient(135deg,#d4ac0d,#b7950b);transform:translateY(-2px)}
-.bj-btn-clear{background:rgba(255,255,255,0.07);color:var(--ivory-dim);border:1px solid rgba(255,255,255,0.15);font-size:1rem}
-.bj-btn-clear:hover:not(:disabled){background:rgba(255,255,255,0.12)}
+.bj-btn-clear{background:rgba(255,255,255,0.07);color:var(--ivory-dim);border:1px solid rgba(255,255,255,0.15);font-size:0.85rem}
 
 /* ── SHARED CONTROLS ── */
 .controls{display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-start;margin-bottom:1rem}
@@ -467,71 +495,95 @@ footer{text-align:center;padding:2rem;color:rgba(245,240,225,0.22);font-size:1re
     <p id="bjTutText">Blackjack is the casino game with the lowest house edge when played correctly — as low as <strong>0.5%</strong> with perfect Basic Strategy. Your goal: beat the dealer by getting closer to 21 without going over. You don't play against other players, only the dealer.</p>
     <div class="strategy-box" id="bjStratBox">
       <div class="strategy-box-label">🎯 Live Strategy Coach</div>
-      <p id="bjStratText">Place a bet on the circle, then hit Deal. After each card, your personalized strategy advice will appear here — including the exact move Basic Strategy recommends and why.</p>
+      <p id="bjStratText">Select chips below, tap the bet circle to wager, then hit Deal. Strategy advice updates after every card.</p>
     </div>
   </div>
 
-  <!-- BLACKJACK TABLE -->
+  <!-- BLACKJACK TABLE — all-in-one compact felt -->
   <div class="bj-table" id="bjTable">
 
-    <!-- Insurance zone (hidden by default) -->
+    <!-- Insurance row -->
     <div id="bjInsuranceRow" style="display:none;width:100%;text-align:center">
-      <div class="bj-insurance-zone" onclick="bjInsurance()" id="bjInsZone">💰 Insurance? (pays 2:1 if dealer has Blackjack)</div>
+      <div class="bj-insurance-zone" onclick="bjInsurance()" id="bjInsZone">💰 Insurance? (pays 2:1 — not recommended)</div>
     </div>
 
+    <!-- Dealer -->
     <div class="bj-section-label">DEALER</div>
     <div class="hand-area" id="bjDealerHand"></div>
     <div class="hand-value" id="bjDealerValue"></div>
 
-    <div style="height:1rem"></div>
+    <div style="height:0.3rem"></div>
 
-    <!-- Bet circle -->
-    <div class="bj-bet-circle" id="bjBetCircle" onclick="bjPlaceBet()">
-      <div class="chip-stack" id="bjBetChips"></div>
-      <span id="bjBetLabel" style="position:relative;z-index:1">BET HERE</span>
+    <!-- Player — supports split with two sub-hands -->
+    <div class="bj-section-label" id="bjPlayerLabel">YOUR HAND</div>
+    <!-- Normal single hand -->
+    <div id="bjSingleHand" style="width:100%">
+      <div class="hand-area" id="bjPlayerHand"></div>
+      <div class="hand-value" id="bjPlayerValue"></div>
     </div>
-    <div style="font-family:'Playfair Display',serif;font-size:0.95rem;color:var(--gold-light);min-height:1.4em" id="bjBetAmt">$0</div>
+    <!-- Split hands (hidden until split) -->
+    <div id="bjSplitHands" style="display:none;width:100%;display:none">
+      <div style="display:flex;gap:0.5rem;width:100%">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+          <div class="bj-split-label" id="bjSplit1Label">HAND 1</div>
+          <div class="hand-area" id="bjHand1" style="min-height:80px"></div>
+          <div class="hand-value" id="bjHand1Value"></div>
+        </div>
+        <div style="width:1px;background:rgba(201,168,76,0.2)"></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+          <div class="bj-split-label" id="bjSplit2Label">HAND 2</div>
+          <div class="hand-area" id="bjHand2" style="min-height:80px"></div>
+          <div class="hand-value" id="bjHand2Value"></div>
+        </div>
+      </div>
+    </div>
 
-    <div style="height:0.5rem"></div>
-    <div class="bj-section-label">YOUR HAND</div>
-    <div class="hand-area" id="bjPlayerHand"></div>
-    <div class="hand-value" id="bjPlayerValue"></div>
-  </div>
+    <div style="height:0.4rem"></div>
 
-  <!-- BJ ACTION BUTTONS -->
+    <!-- Bottom bar: bet circle · bankroll · chips · deal -->
+    <div class="bj-bottom-bar">
+
+      <!-- Bet circle -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0.2rem;flex-shrink:0">
+        <div class="bj-bet-circle" id="bjBetCircle" onclick="bjPlaceBet()">
+          <div class="chip-stack" id="bjBetChips"></div>
+          <span id="bjBetLabel" style="position:relative;z-index:1;font-size:0.7rem">BET</span>
+        </div>
+        <div style="font-family:'Playfair Display',serif;font-size:1rem;color:var(--gold-light);line-height:1" id="bjBetAmt">$0</div>
+      </div>
+
+      <!-- Bankroll -->
+      <div class="bj-bankroll-inline bankroll-display">
+        <div class="bankroll-label">💰 Bank</div>
+        <div class="bankroll-amount" id="bjBankroll">$500</div>
+      </div>
+
+      <!-- Chips -->
+      <div class="bj-chips-inline chip-selector">
+        <div class="chip-selector-label">Chip</div>
+        <div class="chip-buttons">
+          <button class="chip-btn c5 selected" id="bjChip5" onclick="bjSelectChip(5,this)">$5</button>
+          <button class="chip-btn c10" onclick="bjSelectChip(10,this)">$10</button>
+          <button class="chip-btn c25" onclick="bjSelectChip(25,this)">$25</button>
+          <button class="chip-btn c100" onclick="bjSelectChip(100,this)">$100</button>
+        </div>
+      </div>
+
+    </div><!-- /bj-bottom-bar -->
+  </div><!-- /bj-table -->
+
+  <!-- BJ ACTION BUTTONS — grid layout -->
   <div class="bj-actions" id="bjActions">
     <button class="bj-btn bj-btn-deal" id="bjDealBtn" onclick="bjDeal()">🃏 Deal</button>
     <button class="bj-btn bj-btn-hit" id="bjHitBtn" onclick="bjHit()" disabled>Hit</button>
     <button class="bj-btn bj-btn-stand" id="bjStandBtn" onclick="bjStand()" disabled>Stand</button>
-    <button class="bj-btn bj-btn-double" id="bjDoubleBtn" onclick="bjDouble()" disabled>Double Down</button>
+    <button class="bj-btn bj-btn-double" id="bjDoubleBtn" onclick="bjDouble()" disabled>Double</button>
     <button class="bj-btn bj-btn-split" id="bjSplitBtn" onclick="bjSplit()" disabled>Split</button>
-    <button class="bj-btn bj-btn-next" id="bjNextBtn" onclick="bjNextHand()" disabled style="display:none">Next Hand ➜</button>
-    <button class="bj-btn bj-btn-clear" id="bjClearBtn" onclick="bjClearBet()">Clear Bet</button>
-  </div>
-
-  <!-- CONTROLS -->
-  <div class="controls" style="margin-top:0.8rem">
-    <div class="bankroll-display">
-      <div class="bankroll-label">💰 Bankroll</div>
-      <div class="bankroll-amount" id="bjBankroll">$500</div>
-    </div>
-    <div class="chip-selector">
-      <div class="chip-selector-label">Chip Value</div>
-      <div class="chip-buttons">
-        <button class="chip-btn c5 selected" id="bjChip5" onclick="bjSelectChip(5,this)">$5</button>
-        <button class="chip-btn c10" onclick="bjSelectChip(10,this)">$10</button>
-        <button class="chip-btn c25" onclick="bjSelectChip(25,this)">$25</button>
-        <button class="chip-btn c100" onclick="bjSelectChip(100,this)">$100</button>
-      </div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:0.3rem;align-items:center;justify-content:center">
-      <div style="font-size:0.95rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--ivory-dim)">Current Bet</div>
-      <div style="font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--gold-light)" id="bjBetDisplay">$0</div>
-    </div>
+    <button class="bj-btn bj-btn-clear" id="bjClearBtn" onclick="bjClearBet()">Clear</button>
   </div>
 
   <div class="message-log" id="bjLog">
-    <div class="log-entry info">🃏 Select a chip, click the bet circle, then hit Deal to start. Live coaching will appear after every card!</div>
+    <div class="log-entry info">🃏 Tap chips to select value, tap the circle to bet, then Deal. Hit Deal again to repeat your last bet!</div>
   </div>
 
   <!-- BLACKJACK RULES -->
@@ -591,12 +643,24 @@ footer{text-align:center;padding:2rem;color:rgba(245,240,225,0.22);font-size:1re
 </div><!-- /casino-floor -->
 
 <footer>For entertainment &amp; educational purposes only · Practice play, no real money · Please gamble responsibly</footer>
+<div id="netPopup"></div>
 
 <script>
 // ══════════════════════════════════════════════
 // UTILITY
 // ══════════════════════════════════════════════
 function toggleRule(card){ card.classList.toggle('open') }
+
+// ── WIN/LOSS POPUP ──
+let _popupTimer=null;
+function showNetPopup(net){
+  if(net===0) return; // no popup for push
+  const el=document.getElementById('netPopup');
+  el.textContent=(net>0?'+':'')+`$${Math.abs(net)}`;
+  el.className='show '+(net>0?'win':'lose');
+  if(_popupTimer) clearTimeout(_popupTimer);
+  _popupTimer=setTimeout(()=>{ el.className=''; },1000);
+}
 function switchGame(game, btn){
   document.querySelectorAll('.game-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.game-tab').forEach(b=>b.classList.remove('active'));
@@ -605,11 +669,39 @@ function switchGame(game, btn){
 }
 
 // ══════════════════════════════════════════════
-//  CRAPS ENGINE
+//  CRAPS ENGINE — full rules-accurate rewrite
 // ══════════════════════════════════════════════
+/*
+  COME BET RULES (real craps):
+  - Only available AFTER a point is established (puck ON).
+  - First roll after placing Come bet acts as a mini come-out:
+      7 or 11 → Come wins immediately
+      2, 3, 12 → Come loses immediately (12 is a push for Don't Come)
+      4,5,6,8,9,10 → Come bet "travels" to that number box
+  - Once on a number, Come bet wins if that number rolls before 7,
+    loses if 7 rolls first (seven-out).
+  - Come bet is NOT affected by the main point being made or missed —
+    it lives independently on its own number.
+
+  DON'T COME RULES:
+  - Opposite of Come. After point set, first roll:
+      7 or 11 → Don't Come loses
+      2 or 3  → Don't Come wins
+      12      → Push
+      4-6,8-10→ Don't Come travels to that number (now wins if 7 before number)
+
+  STATE MODEL:
+  cBets{}       — wagered amounts by key (pass, dontpass, place6, etc.)
+  cComeBets[]   — array of {amount, number} where number=null means "in the come box waiting"
+  cDontComeBets[]— array of {amount, number}
+  cPhase        — 'comeout' | 'point'
+  cPoint        — the established point number or null
+*/
 const PIP_MAP={1:[5],2:[1,9],3:[1,5,9],4:[1,3,7,9],5:[1,3,5,7,9],6:[1,3,4,6,7,9]};
 let cBankroll=500, cChip=5, cBets={}, cPoint=null, cPhase='comeout';
-let cComeBetActive=false; // true when a come bet is riding and waiting to be assigned a number
+let cComeBets=[];      // [{amount, number}]  number=null = waiting for assignment
+let cDontComeBets=[];  // [{amount, number}]
+let cRollHadResolution=false; // true when at least one bet won/lost this roll
 
 function setDieFace(n,v){
   for(let i=1;i<=9;i++) document.getElementById(`d${n}p${i}`).classList.toggle('show',PIP_MAP[v].includes(i));
@@ -621,36 +713,94 @@ function cSelectChip(v,btn){
   btn.classList.add('selected');
 }
 
-// Clear all persistent result colouring when a new bet round starts
 function cClearResultColours(){
-  document.querySelectorAll('.bet-zone').forEach(z=>{
-    z.classList.remove('zone-won','zone-lost');
-  });
-  // Remove any come-arrow badges
-  document.querySelectorAll('.come-arrow').forEach(a=>a.remove());
+  document.querySelectorAll('.bet-zone').forEach(z=>z.classList.remove('zone-won','zone-lost'));
 }
 
 function cPlaceBet(key,el){
   if(cBankroll<cChip){cAddLog('Not enough funds!','lose');return;}
-  // Clear persistent result colours when player places a new bet
-  cClearResultColours();
-  cBankroll-=cChip; cBets[key]=(cBets[key]||0)+cChip;
+  // Come / Don't Come only allowed after point is set
+  if((key==='come'||key==='dontcome') && cPhase!=='point'){
+    cAddLog(`⚠️ ${key==='come'?'Come':'Don\'t Come'} bets can only be placed after a Point is established.`,'info');
+    return;
+  }
+  cBankroll-=cChip;
   document.getElementById('cBankroll').textContent='$'+cBankroll;
-  const stack=document.getElementById('cch-'+key);
-  if(stack){const t=document.createElement('div');t.className=`chip-token c${cChip>25?100:cChip}`;t.textContent='$'+cChip;stack.appendChild(t);}
-  if(key==='come') cComeBetActive=true;
-  cAddLog(`Placed $${cChip} on ${key.toUpperCase()}. Zone total: $${cBets[key]}.`);
+
+  if(key==='come'){
+    cComeBets.push({amount:cChip, number:null});
+    const stack=document.getElementById('cch-come');
+    if(stack){const t=document.createElement('div');t.className=`chip-token c${cChip>25?100:cChip}`;t.textContent='$'+cChip;stack.appendChild(t);}
+    cAddLog(`Placed $${cChip} on COME. Next roll is your come-out.`);
+  } else if(key==='dontcome'){
+    cDontComeBets.push({amount:cChip, number:null});
+    const stack=document.getElementById('cch-dontcome');
+    if(stack){const t=document.createElement('div');t.className=`chip-token c${cChip>25?100:cChip}`;t.textContent='$'+cChip;stack.appendChild(t);}
+    cAddLog(`Placed $${cChip} on DON'T COME. Next roll is your come-out.`);
+  } else {
+    cBets[key]=(cBets[key]||0)+cChip;
+    const stack=document.getElementById('cch-'+key);
+    if(stack){const t=document.createElement('div');t.className=`chip-token c${cChip>25?100:cChip}`;t.textContent='$'+cChip;stack.appendChild(t);}
+    cAddLog(`Placed $${cChip} on ${key.toUpperCase()}. Zone total: $${cBets[key]}.`);
+  }
   cUpdateWagered(); cUpdateStrategy();
 }
 
 function cUpdateWagered(){
-  document.getElementById('cWagered').textContent='$'+Object.values(cBets).reduce((a,b)=>a+b,0);
+  const mainTotal=Object.values(cBets).reduce((a,b)=>a+b,0);
+  const comeTotal=cComeBets.reduce((a,b)=>a+b.amount,0);
+  const dcTotal=cDontComeBets.reduce((a,b)=>a+b.amount,0);
+  document.getElementById('cWagered').textContent='$'+(mainTotal+comeTotal+dcTotal);
+}
+
+// Snapshot of bets at the start of each betting window (taken after each roll resolves)
+let cBetsSnapshot={}, cComeBetsSnapshot=[], cDontComeBetsSnapshot=[];
+
+function cSnapshotBets(){
+  cBetsSnapshot=Object.assign({},cBets);
+  cComeBetsSnapshot=cComeBets.map(c=>Object.assign({},c));
+  cDontComeBetsSnapshot=cDontComeBets.map(dc=>Object.assign({},dc));
 }
 
 function cClearBets(){
-  cBets={}; cComeBetActive=false;
+  // Refund only the bets added THIS round (since last roll)
+  let refund=0;
+
+  // Main bets: refund difference from snapshot
+  for(const key of Object.keys(cBets)){
+    const prev=cBetsSnapshot[key]||0;
+    const added=cBets[key]-prev;
+    if(added>0){ refund+=added; cBets[key]=prev; }
+    if(cBets[key]<=0) delete cBets[key];
+  }
+
+  // Come bets: only remove ones with number===null placed this round (new waiting bets)
+  // Any come bet already on a number stays (it was placed in a prior round)
+  const comeToRemove=cComeBets.filter(c=>c.number===null);
+  comeToRemove.forEach(c=>{ refund+=c.amount; });
+  cComeBets=cComeBets.filter(c=>c.number!==null);
+
+  // Don't Come: same — only remove waiting ones placed this round
+  const dcToRemove=cDontComeBets.filter(dc=>dc.number===null);
+  dcToRemove.forEach(dc=>{ refund+=dc.amount; });
+  cDontComeBets=cDontComeBets.filter(dc=>dc.number!==null);
+
+  // Refund the player
+  cBankroll+=refund;
+  document.getElementById('cBankroll').textContent='$'+cBankroll;
+  if(refund>0) cAddLog(`↩ Cleared new bets — $${refund} returned.`,'info');
+  else cAddLog('No new bets to clear.','info');
+
+  // Redraw all chip stacks
   document.querySelectorAll('[id^="cch-"]').forEach(s=>s.innerHTML='');
-  cClearResultColours();
+  // Redraw main bets
+  for(const [key,amt] of Object.entries(cBets)){
+    const stack=document.getElementById('cch-'+key); if(!stack) continue;
+    const denoms=[100,25,10,5]; let rem=amt;
+    denoms.forEach(d=>{ while(rem>=d){ const t=document.createElement('div'); t.className=`chip-token c${d}`; t.textContent='$'+d; stack.appendChild(t); rem-=d; } });
+  }
+  // Redraw come/dc chips (established on numbers)
+  cRenderComeChips();
   cUpdateWagered();
 }
 
@@ -658,52 +808,54 @@ function cAddLog(msg,type=''){
   const log=document.getElementById('cLog');
   const e=document.createElement('div'); e.className='log-entry'+(type?' '+type:''); e.textContent=msg;
   log.appendChild(e); log.scrollTop=log.scrollHeight;
-  while(log.children.length>35) log.removeChild(log.firstChild);
+  while(log.children.length>40) log.removeChild(log.firstChild);
 }
 
-// Persistent colour: stays until next bet is placed
 function cMarkZone(id,type){
   const el=document.getElementById(id); if(!el)return;
-  // Brief bright flash first, then settle to persistent colour
   const flashCls=type==='win'?'win-flash':'lose-flash';
   const persistCls=type==='win'?'zone-won':'zone-lost';
   el.classList.add(flashCls);
-  setTimeout(()=>{ el.classList.remove(flashCls); el.classList.add(persistCls); }, 700);
+  setTimeout(()=>{ el.classList.remove(flashCls); el.classList.add(persistCls); },700);
 }
-
-// Legacy alias kept for compatibility
 function cFlash(id,type){ cMarkZone(id,type); }
 
-// Show come-bet arrow on a number zone
-function cShowComeArrow(num){
-  const zone=document.getElementById('cz-place'+num); if(!zone)return;
-  // Remove any existing arrow on this zone
-  zone.querySelectorAll('.come-arrow').forEach(a=>a.remove());
-  const badge=document.createElement('div');
-  badge.className='come-arrow';
-  badge.textContent='COME ↓';
-  zone.appendChild(badge);
-}
+// Render all come/don't-come chips on their zones
+function cRenderComeChips(){
+  // Collect all zone IDs that need clearing
+  const zonesToClear=new Set(['cch-come','cch-dontcome']);
+  cComeBets.forEach(cb=>{ if(cb.number) zonesToClear.add('cch-place'+cb.number); });
+  cDontComeBets.forEach(dc=>{ if(dc.number) zonesToClear.add('cch-place'+dc.number); });
+  zonesToClear.forEach(id=>{ const el=document.getElementById(id); if(el) el.innerHTML=''; });
 
-// Move come-bet chips to a number zone visually
-function cMoveComeChips(num){
-  const fromStack=document.getElementById('cch-come');
-  const toStack=document.getElementById('cch-place'+num);
-  if(!fromStack||!toStack)return;
-  // Clone chips across
-  Array.from(fromStack.children).forEach(chip=>{
-    const clone=chip.cloneNode(true);
-    toStack.appendChild(clone);
+  // Re-render come bet chips in correct zones
+  cComeBets.forEach(cb=>{
+    const stackId=cb.number?'cch-place'+cb.number:'cch-come';
+    const stack=document.getElementById(stackId); if(!stack)return;
+    const t=document.createElement('div');
+    t.className=`chip-token c${cb.amount>25?100:cb.amount}`;
+    t.textContent='$'+cb.amount;
+    stack.appendChild(t);
   });
-  fromStack.innerHTML='';
+  cDontComeBets.forEach(dc=>{
+    const stackId=dc.number?'cch-place'+dc.number:'cch-dontcome';
+    const stack=document.getElementById(stackId); if(!stack)return;
+    const t=document.createElement('div');
+    t.className=`chip-token c${dc.amount>25?100:dc.amount}`;
+    t.textContent='DC';
+    stack.appendChild(t);
+  });
 }
 
-function cApplyNet(amount,partial=false){
-  cBankroll+=amount; if(cBankroll<0)cBankroll=0;
-  const el=document.getElementById('cBankroll'); el.textContent='$'+cBankroll;
-  if(amount>0){el.classList.add('win-anim');setTimeout(()=>el.classList.remove('win-anim'),400);}
-  if(!partial&&amount>0) cAddLog(`💰 Net: +$${amount}. Bankroll: $${cBankroll}.`,'win');
-  if(!partial&&amount<0) cAddLog(`📉 Net: -$${Math.abs(amount)}. Bankroll: $${cBankroll}.`,'lose');
+function cApplyNet(net){
+  // net = total payout (stake returns + profits) added back to bankroll this roll.
+  // Stakes were already deducted when bets were placed.
+  cBankroll+=net;
+  if(cBankroll<0) cBankroll=0;
+  const el=document.getElementById('cBankroll');
+  el.textContent='$'+cBankroll;
+  if(net>0){el.classList.add('win-anim');setTimeout(()=>el.classList.remove('win-anim'),400);}
+  if(net>0) cAddLog(`💰 Returned $${net}. Bankroll: $${cBankroll}.`,'win');
   if(cBankroll===0){cAddLog('😢 Bankroll depleted — refilled to $500.','info');cBankroll=500;el.textContent='$500';}
 }
 
@@ -718,27 +870,26 @@ function cResetPuck(){
   document.getElementById('cz-pass').appendChild(puck);
 }
 
-// Strategy advice generator
 function cUpdateStrategy(lastRoll, d1, d2){
   const box=document.getElementById('cStratBox');
   const txt=document.getElementById('cStratText');
   let advice='', cls='';
-  const hasBet=Object.keys(cBets).length>0;
+  const hasBet=Object.keys(cBets).length>0||cComeBets.length>0||cDontComeBets.length>0;
   const hasPropBet=cBets['any7']||cBets['yo11']||cBets['anycraps'];
   const hasHighEdge=cBets['field']||cBets['hard4']||cBets['hard6']||cBets['hard8']||cBets['hard10']||cBets['big6']||cBets['big8']||cBets['place4']||cBets['place10'];
 
   if(cPhase==='comeout'&&!hasBet){
-    advice='🎲 COME-OUT ROLL ODDS — Start with Pass Line (1.41% edge). On the come-out: 7 can be rolled 6 ways out of 36 (16.7%), 11 can be rolled 2 ways (5.6%) — so you have 8 winning outcomes (22.2%). Craps numbers 2/3/12 cover only 4 ways (11.1%). That leaves 24 ways (66.7%) to set a Point. Pass Line wins more than it loses on the come-out.';
+    advice='🎲 COME-OUT ROLL ODDS — You can roll without a bet to observe. To play: Pass Line (1.41% edge) wins on 7/11 (22.2% of rolls), loses on 2/3/12 (11.1%), sets a Point otherwise (66.7%). The come-out favors Pass Line bettors 2:1 on instant decisions.';
     cls='suggest-good';
   } else if(cPhase==='comeout'&&(cBets['pass']||cBets['dontpass'])){
     if(hasPropBet){
-      advice='⚠️ You have proposition bets active. Any 7 carries a 16.9% house edge — nearly 12× worse than Pass Line. Remove these before rolling to protect your bankroll.';
+      advice='⚠️ Proposition bets active. Any 7 has a 16.9% house edge — nearly 12× worse than Pass Line. These drain bankrolls fast.';
       cls='suggest-danger';
     } else if(cBets['pass']&&!cBets['place6']&&!cBets['place8']){
-      advice='✅ Good start — Pass Line placed. Come-out odds: 8 ways to win instantly (7 or 11) vs 4 ways to lose (2/3/12). If a Point is set, adding Place 6 or 8 gives you extra numbers at only 1.52% edge.';
+      advice='✅ Pass Line placed. Come-out: 8 ways to win instantly (7 or 11) vs 4 ways to lose (2/3/12). If a Point sets, consider adding Place 6 or 8 at 1.52% edge.';
       cls='suggest-good';
     } else {
-      advice='✅ Solid position — Pass Line + Place 6/8 is the optimal beginner combo. Three ways to profit while keeping your overall house edge below 2%.';
+      advice='✅ Pass Line + Place 6/8 — optimal beginner combo. Three ways to profit, overall edge under 2%.';
       cls='suggest-good';
     }
   } else if(cPhase==='point'){
@@ -746,29 +897,33 @@ function cUpdateStrategy(lastRoll, d1, d2){
     const waysPoint={4:3,5:4,6:5,8:5,9:4,10:3}[p]||0;
     const ratio=(6/waysPoint).toFixed(1);
     const bustPct=((6/(6+waysPoint))*100).toFixed(0);
-    if(hasPropBet){
-      advice=`⚠️ Point is ${p} (${waysPoint} ways to hit vs 6 ways to seven-out — ${ratio}:1 against). Prop bets burn money fast. Focus on the point: 7-out probability each roll is ${bustPct}%.`;
+    const comeWaiting=cComeBets.filter(c=>c.number===null).length;
+    if(comeWaiting>0){
+      advice=`Come bet is in the box — next roll is its come-out. 7/11 = Come wins; 2/3/12 = Come loses; any other number = Come travels to that box and wins if that number repeats before 7.`;
+      cls='suggest-good';
+    } else if(hasPropBet){
+      advice=`⚠️ Point is ${p} (${waysPoint} ways to hit vs 6 ways to 7-out, ${ratio}:1 against). Prop bets burn money fast on top of this.`;
       cls='suggest-caution';
     } else if(hasHighEdge){
-      advice=`Point is ${p} — ${waysPoint} ways to win vs 6 ways to lose (${ratio}:1 against, ${bustPct}% seven-out risk per roll). Place 4/10 carry 6.7% edge — consider taking them down and focusing on 6/8.`;
+      advice=`Point is ${p} — ${waysPoint} ways to win vs 6 to lose (${bustPct}% seven-out risk). Place 4/10 at 6.7% edge are costly — consider focusing on 6/8.`;
       cls='suggest-caution';
     } else {
-      advice=`Point: ${p}. ${waysPoint} ways to roll ${p} vs 6 ways to roll 7. Odds are ${ratio}:1 against you each roll — seven-out risk is ${bustPct}% per roll. Stay patient and disciplined. Your current bets are well-positioned.`;
+      advice=`Point: ${p}. ${waysPoint} ways to roll ${p} vs 6 ways to roll 7 (${ratio}:1 against, ${bustPct}% seven-out risk per roll). Stay disciplined.`;
       cls='suggest-good';
     }
   }
   if(lastRoll!==undefined){
     if(lastRoll===7&&cPhase==='comeout'){
-      advice='🎉 Natural 7! The most common single outcome (6/36 = 16.7%). This is why Pass Line bettors love the come-out — 7 is your best friend before a Point is set.';
+      advice='🎉 Natural 7! 6/36 = 16.7% — the most common roll. Pass Line wins, Don\'t Pass loses on the come-out.';
       cls='suggest-good';
     } else if(lastRoll===11&&cPhase==='comeout'){
-      advice='🎉 Yo-Eleven! An 11 appears on 2 of 36 rolls (5.6%). Combined with the 7, that\'s 22.2% of come-out rolls winning instantly for Pass Line.';
+      advice='🎉 Yo-Eleven! 2/36 = 5.6%. Combined with 7, that\'s 22.2% of come-out rolls that win instantly for Pass.';
       cls='suggest-good';
     } else if([2,3,12].includes(lastRoll)&&cPhase==='comeout'){
-      advice=`Craps ${lastRoll}. The craps numbers (2/3/12) account for only 4 of 36 outcomes (11.1%). Combined probability of crapping out is just 11.1% — bad luck, not bad strategy. Keep betting Pass Line.`;
+      advice=`Craps ${lastRoll}. Only 4/36 (11.1%) of rolls are craps numbers. Bad luck — not bad strategy. Keep betting Pass Line.`;
       cls='suggest-caution';
-    } else if(cPhase==='point'&&lastRoll===7){
-      advice='🔥 Seven-out. The 7 appears 6/36 rolls (16.7%), more than any single number. This is expected variance — not a reason to abandon your strategy. Restart with Pass Line.';
+    } else if(lastRoll===7&&cPhase==='point'){
+      advice='🔥 Seven-out. 7 appears 6/36 = 16.7% of rolls. Expected variance — restart with Pass Line.';
       cls='suggest-danger';
     }
   }
@@ -776,93 +931,240 @@ function cUpdateStrategy(lastRoll, d1, d2){
 }
 
 function cRollDice(){
-  const total=Object.values(cBets).reduce((a,b)=>a+b,0);
-  if(total===0){cAddLog('⚠️ Place a bet first!','info');return;}
+  // Clear previous roll's result colours before the new roll
+  cClearResultColours();
   const btn=document.getElementById('cRollBtn'); btn.disabled=true;
-  document.getElementById('die1').classList.add('rolling'); document.getElementById('die2').classList.add('rolling');
+  document.getElementById('die1').classList.add('rolling');
+  document.getElementById('die2').classList.add('rolling');
   setTimeout(()=>{
     const d1=Math.ceil(Math.random()*6), d2=Math.ceil(Math.random()*6), t=d1+d2;
     setDieFace(1,d1); setDieFace(2,d2);
-    document.getElementById('die1').classList.remove('rolling'); document.getElementById('die2').classList.remove('rolling');
+    document.getElementById('die1').classList.remove('rolling');
+    document.getElementById('die2').classList.remove('rolling');
     document.getElementById('cRollTotal').textContent=t;
+    const bankBefore=cBankroll;
+    const totalStaked=Object.values(cBets).reduce((a,b)=>a+b,0)
+      +cComeBets.reduce((a,c)=>a+c.amount,0)
+      +cDontComeBets.reduce((a,c)=>a+c.amount,0);
     cResolveBets(d1,d2,t);
+    const bankAfter=cBankroll;
+    // Show popup only when bets actually resolved (flag set inside cResolveBets)
+    if(cRollHadResolution){
+      const pnl=(bankAfter-bankBefore)-totalStaked;
+      if(pnl!==0) showNetPopup(pnl);
+    }
     cUpdateStrategy(t,d1,d2);
     btn.disabled=false;
   },520);
 }
 
 function cResolveBets(d1,d2,t){
-  const isHard=d1===d2; let net=0;
-  const outEl=document.getElementById('cRollOutcome'); outEl.className='outcome';
+  const isHard=d1===d2;
+  let net=0;
+  cRollHadResolution=false; // reset — set true only when bets actually win/lose
+  const outEl=document.getElementById('cRollOutcome');
+  outEl.className='outcome';
+
+  // ── COME-OUT PHASE ──────────────────────────────
   if(cPhase==='comeout'){
     if(t===7||t===11){
-      outEl.textContent=t===7?'Natural 7 — Pass Line wins!':'Yo-Eleven — Pass Line wins!'; outEl.classList.add('natural');
-      cAddLog(`🎉 ${t} — Natural! Pass Line wins.`,'win');
-      if(cBets['pass']){net+=cBets['pass']*2;cFlash('cz-pass','win');}
-      if(cBets['dontpass']){net-=cBets['dontpass'];cFlash('cz-dontpass','lose');}
-      if(cBets['come']){net+=cBets['come']*2;cFlash('cz-come','win');}
-      net+=cResolveOneRolls(t,d1,d2); cApplyNet(net); cClearBets();
+      cRollHadResolution=true;
+      outEl.textContent=t===7?'Natural 7 — Pass Line wins!':'Yo-Eleven — Pass Line wins!';
+      outEl.classList.add('natural');
+      cAddLog(`🎉 ${t} — Natural!`,'win');
+      if(cBets['pass'])    { net+=cBets['pass']*2;    cMarkZone('cz-pass','win'); }
+      if(cBets['dontpass']){ /* stake already gone */ cMarkZone('cz-dontpass','lose'); }
+      net+=cResolveOneRolls(t,d1,d2);
+      cApplyNet(net);
+      cBets={}; cComeBets=[]; cDontComeBets=[];
+      document.querySelectorAll('[id^="cch-"]').forEach(s=>s.innerHTML='');
+      cUpdateWagered();
+
     } else if([2,3,12].includes(t)){
+      cRollHadResolution=true;
       outEl.textContent=`Craps ${t} — Pass Line loses!`; outEl.classList.add('craps-out');
       cAddLog(`💀 ${t} (Craps) — Pass Line loses.`,'lose');
-      if(cBets['pass']){net-=cBets['pass'];cFlash('cz-pass','lose');}
-      if(cBets['dontpass']){if(t===12){net+=cBets['dontpass'];cAddLog('Don\'t Pass pushes on 12.','info');}else{net+=cBets['dontpass']*2;cFlash('cz-dontpass','win');}}
-      net+=cResolveOneRolls(t,d1,d2); cApplyNet(net); cClearBets();
+      if(cBets['pass'])    { /* stake already gone */ cMarkZone('cz-pass','lose'); }
+      if(cBets['dontpass']){
+        if(t===12){net+=cBets['dontpass']; cAddLog('Don\'t Pass pushes on 12.','info');}
+        else{net+=cBets['dontpass']*2; cMarkZone('cz-dontpass','win');}
+      }
+      net+=cResolveOneRolls(t,d1,d2);
+      cApplyNet(net);
+      cBets={}; cComeBets=[]; cDontComeBets=[];
+      document.querySelectorAll('[id^="cch-"]').forEach(s=>s.innerHTML='');
+      cUpdateWagered();
+
     } else {
       cPoint=t; cPhase='point';
       outEl.textContent=`Point is ${t} — Roll again!`; outEl.classList.add('point-set');
-      cAddLog(`📍 Point set: ${t}. Roll ${t} before 7 to win.`,'point');
-      // If a come bet is active and the come-out roll sets a point, move the come bet to that number
-      if(cComeBetActive && cBets['come'] && cPhase==='point'){
-        cAddLog(`↪ Come bet moves to ${t}!`,'point');
-        cMoveComeChips(t);
-        cShowComeArrow(t);
-        // Transfer come bet to place-number tracking
-        cBets['place'+t]=(cBets['place'+t]||0)+cBets['come'];
-        delete cBets['come'];
-        cComeBetActive=false;
-      }
-      cMovePuck(t); net+=cResolveOneRolls(t,d1,d2); cApplyNet(net);
+      cAddLog(`📍 Point set: ${t}. Roll ${t} before a 7 to win.`,'point');
+      cMovePuck(t);
+      net+=cResolveOneRolls(t,d1,d2);
+      cApplyNet(net);
     }
+
+  // ── POINT PHASE ─────────────────────────────────
   } else {
-    if(t===7){
-      outEl.textContent=`Seven-Out! Pass Line loses.`; outEl.classList.add('seven-out');
-      cAddLog(`🔥 Seven-out. Pass loses, Don't Pass wins.`,'lose');
-      if(cBets['pass']){net-=cBets['pass'];cFlash('cz-pass','lose');}
-      if(cBets['dontpass']){net+=cBets['dontpass']*2;cFlash('cz-dontpass','win');}
-      if(cBets['come']){net-=cBets['come'];cFlash('cz-come','lose');}
-      if(cBets['dontcome']){net+=cBets['dontcome']*2;cFlash('cz-dontcome','win');}
-      ['place4','place5','place6','place8','place9','place10','hard4','hard6','hard8','hard10','big6','big8'].forEach(k=>{
-        if(cBets[k]){net-=cBets[k];cFlash('cz-'+k,'lose');}
+
+    // Snapshot which come/dc bets were ALREADY established on a number BEFORE this roll
+    // (number !== null means they were established on a prior roll)
+    const establishedCome = cComeBets.filter(c=>c.number!==null);
+    const establishedDC   = cDontComeBets.filter(c=>c.number!==null);
+
+    // Snapshot which come/dc bets are WAITING (placed this or a prior roll, not yet on a number)
+    const waitingCome = cComeBets.filter(c=>c.number===null);
+    const waitingDC   = cDontComeBets.filter(c=>c.number===null);
+
+    // ── Step 1: Resolve established come/DC bets for this roll number ──
+    // (only if this roll is not 7 — seven-out handled separately below)
+    if(t!==7){
+      // Established Come bets whose number matches this roll WIN
+      establishedCome.filter(c=>c.number===t).forEach(cb=>{
+        net+=cb.amount*2; cMarkZone('cz-place'+t,'win');
+        cAddLog(`🎉 Come bet on ${t} wins!`,'win');
+        cRollHadResolution=true;
       });
-      net+=cResolveOneRolls(t,d1,d2); cApplyNet(net); cResetPuck(); cClearBets();
-      cPoint=null; cPhase='comeout'; cComeBetActive=false; cAddLog('🔄 New Come-Out roll starting.','info');
+      cComeBets = cComeBets.filter(c=>!(c.number===t));
+
+      // Established DC bets whose number matches this roll LOSE
+      establishedDC.filter(dc=>dc.number===t).forEach(dc=>{
+        cMarkZone('cz-place'+t,'lose');
+        cAddLog(`Don't Come on ${t} loses (number hit).`,'lose');
+      });
+      cDontComeBets = cDontComeBets.filter(dc=>!(dc.number===t));
+    }
+
+    // ── Step 2: Process WAITING come/DC bets — their mini come-out ──
+    // This happens AFTER established bets are resolved so we don't double-count
+    waitingCome.forEach(cb=>{
+      if(t===7||t===11){
+        // Natural on come-out = Come wins immediately (even if main game seven-outs)
+        net+=cb.amount*2; cMarkZone('cz-come','win');
+        cAddLog(`🎉 Come bet wins on ${t} (natural)!`,'win');
+        cComeBets.splice(cComeBets.indexOf(cb),1);
+        cRollHadResolution=true;
+      } else if([2,3,12].includes(t)){
+        // Craps on come-out = Come loses
+        cMarkZone('cz-come','lose');
+        cAddLog(`💀 Come bet loses on craps ${t}.`,'lose');
+        cComeBets.splice(cComeBets.indexOf(cb),1);
+        cRollHadResolution=true;
+      } else {
+        // Point number = Come travels to that box, now tracked there
+        cb.number=t;
+        cAddLog(`↪ Come bet moves to ${t}. Wins if ${t} rolls before 7.`,'point');
+      }
+    });
+
+    waitingDC.forEach(dc=>{
+      if(t===7||t===11){
+        // 7 on DC come-out: DC loses on 7 (DC loses on naturals, opposite of Come)
+        cMarkZone('cz-dontcome','lose');
+        cAddLog(`💀 Don't Come loses on natural ${t}.`,'lose');
+        cDontComeBets.splice(cDontComeBets.indexOf(dc),1);
+      } else if(t===2||t===3){
+        net+=dc.amount*2; cMarkZone('cz-dontcome','win');
+        cAddLog(`✅ Don't Come wins on ${t}!`,'win');
+        cDontComeBets.splice(cDontComeBets.indexOf(dc),1);
+      } else if(t===12){
+        net+=dc.amount;
+        cAddLog(`Push — Don't Come bar on 12. Bet returned.`,'info');
+        cDontComeBets.splice(cDontComeBets.indexOf(dc),1);
+      } else {
+        dc.number=t;
+        cAddLog(`↪ Don't Come moves to ${t}. Wins if 7 before ${t}.`,'point');
+      }
+    });
+
+    // ── Step 3: Seven-out — resolve Pass/Place/established come bets ──
+    if(t===7){
+      cRollHadResolution=true;
+      outEl.textContent=`Seven-Out! Pass Line loses.`; outEl.classList.add('seven-out');
+      cAddLog(`🔥 Seven-out! Pass Line loses.`,'lose');
+      if(cBets['pass'])    { cMarkZone('cz-pass','lose'); cAddLog('Pass Line loses.','lose'); }
+      if(cBets['dontpass']){ net+=cBets['dontpass']*2; cMarkZone('cz-dontpass','win'); cAddLog(`Don't Pass wins $${cBets['dontpass']}!`,'win'); }
+
+      // Remaining established come bets (those that didn't just travel) lose
+      cComeBets.filter(c=>c.number!==null).forEach(cb=>{
+        cMarkZone('cz-place'+cb.number,'lose');
+        cAddLog(`Come bet on ${cb.number} loses to seven-out.`,'lose');
+      });
+      // Remaining established DC bets win
+      cDontComeBets.filter(dc=>dc.number!==null).forEach(dc=>{
+        net+=dc.amount*2;
+        cMarkZone('cz-place'+dc.number,'win');
+        cAddLog(`Don't Come on ${dc.number} wins on seven-out!`,'win');
+      });
+
+      ['place4','place5','place6','place8','place9','place10','hard4','hard6','hard8','hard10','big6','big8'].forEach(k=>{
+        if(cBets[k]){ cMarkZone('cz-'+k,'lose'); }
+      });
+
+      net+=cResolveOneRolls(t,d1,d2);
+      cApplyNet(net);
+      cResetPuck();
+      cBets={}; cComeBets=[]; cDontComeBets=[];
+      document.querySelectorAll('[id^="cch-"]').forEach(s=>s.innerHTML='');
+      cPoint=null; cPhase='comeout';
+      cAddLog('🔄 Seven-out. New Come-Out roll — place your bets!','info');
+
+    // ── Step 4: Point made ──
     } else if(t===cPoint){
-      outEl.textContent=`Point ${cPoint} — Pass Line wins!`; outEl.classList.add('point-win');
+      cRollHadResolution=true;
+      outEl.textContent=`Point ${cPoint} hit — Pass Line wins!`; outEl.classList.add('point-win');
       cAddLog(`✅ Point ${cPoint} made! Pass Line wins.`,'win');
-      if(cBets['pass']){net+=cBets['pass']*2;cFlash('cz-pass','win');}
-      if(cBets['dontpass']){net-=cBets['dontpass'];cFlash('cz-dontpass','lose');}
-      if(cBets['come']){net+=cBets['come']*2;cFlash('cz-come','win');}
-      net+=cResolvePlaceHard(t,d1,d2,isHard); net+=cResolveOneRolls(t,d1,d2);
-      cApplyNet(net); cResetPuck(); cClearBets();
-      cPoint=null; cPhase='comeout'; cComeBetActive=false; cAddLog('🔄 New Come-Out roll starting.','info');
+      if(cBets['pass']){net+=cBets['pass']*2; cMarkZone('cz-pass','win');}
+      if(cBets['dontpass']){ cMarkZone('cz-dontpass','lose'); cAddLog(`Don't Pass loses.`,'lose'); }
+
+      // NOTE: Step 1 already paid & removed established come bets whose number===cPoint.
+      // We log a reminder if any were paid.
+      // Also pay any come bets on this number that Step 1 may have missed (safety net):
+      const comeOnPoint = cComeBets.filter(c=>c.number===cPoint);
+      comeOnPoint.forEach(cb=>{
+        net+=cb.amount*2; cMarkZone('cz-place'+cPoint,'win');
+        cAddLog(`🎉 Come bet on ${cPoint} wins (point made)! Pays 1:1.`,'win');
+      });
+      cComeBets = cComeBets.filter(c=>c.number!==cPoint);
+
+      const dcOnPoint = cDontComeBets.filter(dc=>dc.number===cPoint);
+      dcOnPoint.forEach(dc=>{
+        cMarkZone('cz-place'+cPoint,'lose');
+        cAddLog(`Don't Come on ${cPoint} loses (point made).`,'lose');
+      });
+      cDontComeBets = cDontComeBets.filter(dc=>dc.number!==cPoint);
+
+      net+=cResolvePlaceHard(t,d1,d2,isHard);
+      net+=cResolveOneRolls(t,d1,d2);
+      cApplyNet(net);
+      cResetPuck();
+
+      // Keep come bets on OTHER numbers active — only clear main bets and waiting come bets
+      cComeBets = cComeBets.filter(c=>c.number!==null);
+      cDontComeBets = cDontComeBets.filter(dc=>dc.number!==null);
+      cBets={};
+      document.querySelectorAll('[id^="cch-"]').forEach(s=>s.innerHTML='');
+      cRenderComeChips();
+      cPoint=null; cPhase='comeout';
+      cUpdateWagered();
+      cAddLog('🔄 Point made! Come-out again. Come bets on other numbers stay active.','info');
+
+    // ── Step 5: Mid-roll (non-7, non-point) ──
     } else {
       outEl.textContent=`Rolled ${t} — Point still ${cPoint}`; outEl.classList.add('point-set');
-      cAddLog(`🎲 Rolled ${t}. Shooting for ${cPoint}.`);
-      // Come bet movement: if come bet active and rolled a point number, move it
-      if(cComeBetActive && cBets['come'] && [4,5,6,8,9,10].includes(t)){
-        cAddLog(`↪ Come bet moves to ${t}!`,'point');
-        cMoveComeChips(t);
-        cShowComeArrow(t);
-        cBets['place'+t]=(cBets['place'+t]||0)+cBets['come'];
-        delete cBets['come'];
-        cComeBetActive=false;
-      }
-      net+=cResolvePlaceHard(t,d1,d2,isHard); net+=cResolveOneRolls(t,d1,d2);
-      cApplyNet(net,true); cRemoveWonPlace(t,isHard);
+      cAddLog(`🎲 Rolled ${t}. Shooting for Point: ${cPoint}.`);
+      net+=cResolvePlaceHard(t,d1,d2,isHard);
+      net+=cResolveOneRolls(t,d1,d2);
+      cApplyNet(net);
+      cRemoveWonPlace(t,isHard);
+      // Show popup if any come bets or place bets resolved this roll
+      if(net>0) cRollHadResolution=true;
     }
   }
+
+  cRenderComeChips();
   cUpdateWagered();
+  cSnapshotBets(); // mark current bets as "established" so Clear only removes new additions
 }
 
 function cResolvePlaceHard(t,d1,d2,isHard){
@@ -870,38 +1172,61 @@ function cResolvePlaceHard(t,d1,d2,isHard){
   const pp={place4:9/5,place5:7/5,place6:7/6,place8:7/6,place9:7/5,place10:9/5};
   Object.entries(pp).forEach(([k,pay])=>{
     const num=parseInt(k.replace('place',''));
-    if(t===num&&cBets[k]){n+=cBets[k]+Math.floor(cBets[k]*pay);cFlash('cz-'+k,'win');cAddLog(`💵 Place ${num} wins $${Math.floor(cBets[k]*pay)}.`,'win');}
+    if(t===num&&cBets[k]){
+      n+=cBets[k]+Math.floor(cBets[k]*pay);
+      cMarkZone('cz-'+k,'win');
+      cAddLog(`💵 Place ${num} wins $${Math.floor(cBets[k]*pay)}.`,'win');
+    }
   });
   const hp={hard4:7,hard6:9,hard8:9,hard10:7};
   Object.entries(hp).forEach(([k,pay])=>{
     const num=parseInt(k.replace('hard',''));
     if(cBets[k]){
-      if(t===num&&isHard){n+=cBets[k]+cBets[k]*pay;cFlash('cz-'+k,'win');cAddLog(`🎯 Hard ${num} wins! ${pay}:1.`,'win');}
-      else if(t===num&&!isHard){n-=cBets[k];cFlash('cz-'+k,'lose');cAddLog(`Hard ${num} easy — loses.`,'lose');}
+      if(t===num&&isHard){n+=cBets[k]+cBets[k]*pay; cMarkZone('cz-'+k,'win'); cAddLog(`🎯 Hard ${num} wins! ${pay}:1.`,'win');}
+      else if(t===num&&!isHard){ cMarkZone('cz-'+k,'lose'); cAddLog(`Hard ${num} rolled easy — loses.`,'lose');}
     }
   });
-  if(t===6&&cBets['big6']){n+=cBets['big6']*2;cFlash('cz-big6','win');}
-  if(t===8&&cBets['big8']){n+=cBets['big8']*2;cFlash('cz-big8','win');}
+  if(t===6&&cBets['big6']){n+=cBets['big6']*2; cMarkZone('cz-big6','win');}
+  if(t===8&&cBets['big8']){n+=cBets['big8']*2; cMarkZone('cz-big8','win');}
   return n;
 }
 
 function cRemoveWonPlace(t,isHard){
-  [4,5,6,8,9,10].forEach(num=>{if(t===num&&cBets['place'+num]){delete cBets['place'+num];document.getElementById('cch-place'+num).innerHTML='';}});
-  [4,6,8,10].forEach(num=>{if(cBets['hard'+num]&&t===num){delete cBets['hard'+num];document.getElementById('cch-hard'+num).innerHTML='';}});
-  if(t===6&&cBets['big6']){delete cBets['big6'];document.getElementById('cch-big6').innerHTML='';}
-  if(t===8&&cBets['big8']){delete cBets['big8'];document.getElementById('cch-big8').innerHTML='';}
+  [4,5,6,8,9,10].forEach(num=>{
+    if(t===num&&cBets['place'+num]){delete cBets['place'+num]; document.getElementById('cch-place'+num).innerHTML='';}
+  });
+  [4,6,8,10].forEach(num=>{
+    if(cBets['hard'+num]&&t===num){delete cBets['hard'+num]; document.getElementById('cch-hard'+num).innerHTML='';}
+  });
+  if(t===6&&cBets['big6']){delete cBets['big6']; document.getElementById('cch-big6').innerHTML='';}
+  if(t===8&&cBets['big8']){delete cBets['big8']; document.getElementById('cch-big8').innerHTML='';}
 }
 
 function cResolveOneRolls(t,d1,d2){
   let n=0;
   if(cBets['field']){
-    if([2,3,4,9,10,11,12].includes(t)){const m=(t===2||t===12)?2:1;n+=cBets['field']+cBets['field']*m;cFlash('cz-field','win');cAddLog(`🌾 Field wins! ${t} pays ${m}:1.`,'win');}
-    else{n-=cBets['field'];cFlash('cz-field','lose');cAddLog(`Field loses on ${t}.`,'lose');}
-    delete cBets['field'];document.getElementById('cch-field').innerHTML='';
+    if([2,3,4,9,10,11,12].includes(t)){
+      const m=(t===2||t===12)?2:1;
+      n+=cBets['field']*(1+m); cMarkZone('cz-field','win');
+      cAddLog(`🌾 Field wins! ${t} pays ${m}:1.`,'win');
+    } else { cMarkZone('cz-field','lose'); cAddLog(`Field loses on ${t}.`,'lose'); }
+    delete cBets['field']; document.getElementById('cch-field').innerHTML='';
   }
-  if(cBets['any7']){if(t===7){n+=cBets['any7']+cBets['any7']*4;cFlash('cz-any7','win');cAddLog('Any 7 wins!','win');}else{n-=cBets['any7'];cFlash('cz-any7','lose');}delete cBets['any7'];document.getElementById('cch-any7').innerHTML='';}
-  if(cBets['yo11']){if(t===11){n+=cBets['yo11']+cBets['yo11']*15;cFlash('cz-yo11','win');cAddLog('🎊 Yo-Eleven! 15:1!','win');}else{n-=cBets['yo11'];cFlash('cz-yo11','lose');}delete cBets['yo11'];document.getElementById('cch-yo11').innerHTML='';}
-  if(cBets['anycraps']){if([2,3,12].includes(t)){n+=cBets['anycraps']+cBets['anycraps']*7;cFlash('cz-anycraps','win');cAddLog('Any Craps wins! 7:1!','win');}else{n-=cBets['anycraps'];cFlash('cz-anycraps','lose');}delete cBets['anycraps'];document.getElementById('cch-anycraps').innerHTML='';}
+  if(cBets['any7']){
+    if(t===7){n+=cBets['any7']*5; cMarkZone('cz-any7','win'); cAddLog('Any 7 wins! 4:1','win');}
+    else{ cMarkZone('cz-any7','lose'); }
+    delete cBets['any7']; document.getElementById('cch-any7').innerHTML='';
+  }
+  if(cBets['yo11']){
+    if(t===11){n+=cBets['yo11']*16; cMarkZone('cz-yo11','win'); cAddLog('🎊 Yo-Eleven! 15:1!','win');}
+    else{ cMarkZone('cz-yo11','lose'); }
+    delete cBets['yo11']; document.getElementById('cch-yo11').innerHTML='';
+  }
+  if(cBets['anycraps']){
+    if([2,3,12].includes(t)){n+=cBets['anycraps']*8; cMarkZone('cz-anycraps','win'); cAddLog('Any Craps wins! 7:1!','win');}
+    else{ cMarkZone('cz-anycraps','lose'); }
+    delete cBets['anycraps']; document.getElementById('cch-anycraps').innerHTML='';
+  }
   return n;
 }
 
@@ -928,10 +1253,11 @@ function setCrapsStep(i){
 // ══════════════════════════════════════════════
 //  BLACKJACK ENGINE
 // ══════════════════════════════════════════════
-let bjBankroll=500, bjChip=5, bjBet=0, bjPhase='bet';
-// bjPhase: 'bet' | 'playing' | 'dealer' | 'done'
-let bjPlayerCards=[], bjDealerCards=[], bjSplitCards=[], bjSplitting=false;
-let bjDealerHideIdx=1; // dealer's hidden card index
+let bjBankroll=500, bjChip=5, bjBet=0, bjLastBet=0, bjPhase='bet';
+// bjPhase: 'bet' | 'playing' | 'playing-split' | 'dealer'
+let bjPlayerCards=[], bjDealerCards=[];
+let bjSplitting=false, bjSplitHand1=[], bjSplitHand2=[], bjSplitBet=0, bjActiveHand=0;
+let bjDealerHideIdx=1;
 
 const SUITS=['♠','♥','♦','♣'];
 const RANKS=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
@@ -940,12 +1266,10 @@ let bjDeck=[];
 function bjBuildDeck(){
   bjDeck=[];
   for(let d=0;d<6;d++) for(let s of SUITS) for(let r of RANKS) bjDeck.push({rank:r,suit:s});
-  // shuffle
   for(let i=bjDeck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[bjDeck[i],bjDeck[j]]=[bjDeck[j],bjDeck[i]];}
 }
 
 function bjDraw(){ if(bjDeck.length<20) bjBuildDeck(); return bjDeck.pop(); }
-
 function bjCardValue(rank){ if(rank==='A') return 11; if(['K','Q','J'].includes(rank)) return 10; return parseInt(rank); }
 
 function bjHandTotal(cards){
@@ -971,29 +1295,47 @@ function bjCardHTML(card, hidden=false){
   return el;
 }
 
+function bjHandValueHTML(cards, isSplit=false){
+  const pv=bjHandTotal(cards);
+  const soft=bjIsSoft(cards);
+  if(pv>21) return `<span class="bust-label">BUST — ${pv}</span>`;
+  if(pv===21&&cards.length===2) return `<span class="bj-label">${isSplit?'21 ★':'BLACKJACK! 🎉'}</span>`;
+  return (soft&&pv<=21?'Soft ':'')+pv;
+}
+
 function bjRenderHands(revealDealer=false){
-  const ph=document.getElementById('bjPlayerHand'); ph.innerHTML='';
   const dh=document.getElementById('bjDealerHand'); dh.innerHTML='';
-  bjPlayerCards.forEach(c=>ph.appendChild(bjCardHTML(c)));
-  bjDealerCards.forEach((c,i)=>dh.appendChild(bjCardHTML(c, !revealDealer&&i===bjDealerHideIdx)));
-
-  const pv=bjHandTotal(bjPlayerCards);
-  const soft=bjIsSoft(bjPlayerCards);
-  const pvEl=document.getElementById('bjPlayerValue');
-  if(pv>21) pvEl.innerHTML=`<span class="bust-label">BUST — ${pv}</span>`;
-  else if(pv===21&&bjPlayerCards.length===2) pvEl.innerHTML=`<span class="bj-label">BLACKJACK! 🎉</span>`;
-  else pvEl.textContent=(soft&&pv<=21?'Soft ':'') + pv;
-
+  bjDealerCards.forEach((c,i)=>dh.appendChild(bjCardHTML(c,!revealDealer&&i===bjDealerHideIdx)));
   const dvEl=document.getElementById('bjDealerValue');
   if(revealDealer){
     const dv=bjHandTotal(bjDealerCards);
     if(dv>21) dvEl.innerHTML=`<span class="bust-label">BUST — ${dv}</span>`;
     else if(dv===21&&bjDealerCards.length===2) dvEl.innerHTML=`<span class="bj-label">BLACKJACK!</span>`;
     else dvEl.textContent=dv;
+  } else { dvEl.textContent=bjDealerCards.length?bjCardValue(bjDealerCards[0].rank)+' + ?':''; }
+
+  if(bjSplitting){
+    document.getElementById('bjSingleHand').style.display='none';
+    document.getElementById('bjSplitHands').style.display='';
+    const h1=document.getElementById('bjHand1'); h1.innerHTML='';
+    bjSplitHand1.forEach(c=>h1.appendChild(bjCardHTML(c)));
+    document.getElementById('bjHand1Value').innerHTML=bjSplitHand1.length?bjHandValueHTML(bjSplitHand1,true):'';
+    const h2=document.getElementById('bjHand2'); h2.innerHTML='';
+    bjSplitHand2.forEach(c=>h2.appendChild(bjCardHTML(c)));
+    document.getElementById('bjHand2Value').innerHTML=bjSplitHand2.length?bjHandValueHTML(bjSplitHand2,true):'';
+    document.getElementById('bjSplit1Label').className='bj-split-label'+(bjActiveHand===0?' active':'');
+    document.getElementById('bjSplit2Label').className='bj-split-label'+(bjActiveHand===1?' active':'');
   } else {
-    dvEl.textContent=bjCardValue(bjDealerCards[0].rank)+' + ?';
+    document.getElementById('bjSingleHand').style.display='';
+    document.getElementById('bjSplitHands').style.display='none';
+    const ph=document.getElementById('bjPlayerHand'); ph.innerHTML='';
+    bjPlayerCards.forEach(c=>ph.appendChild(bjCardHTML(c)));
+    const pvEl=document.getElementById('bjPlayerValue');
+    pvEl.innerHTML=bjPlayerCards.length?bjHandValueHTML(bjPlayerCards):'';
   }
 }
+
+function bjActiveCards(){ return bjSplitting?(bjActiveHand===0?bjSplitHand1:bjSplitHand2):bjPlayerCards; }
 
 function bjSelectChip(v,btn){
   bjChip=v;
@@ -1004,12 +1346,19 @@ function bjSelectChip(v,btn){
 function bjPlaceBet(){
   if(bjPhase!=='bet'){bjBjLog('Betting only allowed before the deal.','info');return;}
   if(bjBankroll<bjChip){bjBjLog('Not enough funds!','lose');return;}
+  if(bjPlayerCards.length>0||bjSplitting){
+    bjPlayerCards=[]; bjDealerCards=[]; bjSplitting=false; bjSplitHand1=[]; bjSplitHand2=[];
+    document.getElementById('bjPlayerHand').innerHTML='';
+    document.getElementById('bjDealerHand').innerHTML='';
+    document.getElementById('bjPlayerValue').textContent='';
+    document.getElementById('bjDealerValue').textContent='';
+    document.getElementById('bjSplitHands').style.display='none';
+    document.getElementById('bjSingleHand').style.display='';
+  }
   bjBankroll-=bjChip; bjBet+=bjChip;
   document.getElementById('bjBankroll').textContent='$'+bjBankroll;
-  document.getElementById('bjBetDisplay').textContent='$'+bjBet;
   document.getElementById('bjBetAmt').textContent='$'+bjBet;
   document.getElementById('bjBetLabel').style.display='none';
-  // Add chip to circle
   const stack=document.getElementById('bjBetChips');
   const t=document.createElement('div'); t.className=`chip-token c${bjChip>25?100:bjChip}`; t.textContent='$'+bjChip;
   stack.appendChild(t);
@@ -1021,29 +1370,56 @@ function bjClearBet(){
   if(bjPhase!=='bet'){bjBjLog('Cannot clear bet during hand.','info');return;}
   bjBankroll+=bjBet; bjBet=0;
   document.getElementById('bjBankroll').textContent='$'+bjBankroll;
-  document.getElementById('bjBetDisplay').textContent='$0';
   document.getElementById('bjBetAmt').textContent='$0';
   document.getElementById('bjBetLabel').style.display='';
   document.getElementById('bjBetChips').innerHTML='';
 }
 
 function bjSetButtons(phase){
-  const inPlay=phase==='playing';
-  const isDone=phase==='done';
-  document.getElementById('bjDealBtn').disabled=(phase==='playing'||phase==='dealer'||phase==='done');
+  const inPlay=(phase==='playing'||phase==='playing-split');
+  const cards=bjActiveCards();
+  const isAceSplit=bjSplitting&&bjSplitHand1.length>0&&bjSplitHand1[0].rank==='A';
+  document.getElementById('bjDealBtn').disabled=(phase==='playing'||phase==='playing-split'||phase==='dealer');
   document.getElementById('bjHitBtn').disabled=!inPlay;
   document.getElementById('bjStandBtn').disabled=!inPlay;
-  document.getElementById('bjDoubleBtn').disabled=!(inPlay&&bjPlayerCards.length===2&&bjBankroll>=bjBet);
-  document.getElementById('bjSplitBtn').disabled=!(inPlay&&bjPlayerCards.length===2&&bjPlayerCards[0].rank===bjPlayerCards[1].rank&&bjBankroll>=bjBet);
+  document.getElementById('bjDoubleBtn').disabled=!(inPlay&&cards.length===2&&bjBankroll>=bjBet&&!isAceSplit);
+  document.getElementById('bjSplitBtn').disabled=!(phase==='playing'&&!bjSplitting&&cards.length===2&&cards[0].rank===cards[1].rank&&bjBankroll>=bjBet);
   document.getElementById('bjClearBtn').disabled=phase!=='bet';
-  // Next Hand button: only visible after hand ends
-  const nextBtn=document.getElementById('bjNextBtn');
-  nextBtn.style.display=isDone?'':'none';
-  nextBtn.disabled=!isDone;
 }
 
 function bjDeal(){
-  if(bjBet===0){bjBjLog('⚠️ Place a bet first!','info');return;}
+  // Auto-repeat last bet if no bet placed this round
+  if(bjBet===0){
+    if(bjLastBet>0&&bjBankroll>=bjLastBet){
+      const amt=bjLastBet;
+      bjBankroll-=amt; bjBet=amt;
+      document.getElementById('bjBankroll').textContent='$'+bjBankroll;
+      document.getElementById('bjBetAmt').textContent='$'+bjBet;
+      document.getElementById('bjBetLabel').style.display='none';
+      const stack=document.getElementById('bjBetChips');
+      stack.innerHTML='';
+      let rem=amt;
+      const denoms=[100,25,10,5];
+      denoms.forEach(d=>{ while(rem>=d){ const t=document.createElement('div'); t.className=`chip-token c${d}`; t.textContent='$'+d; stack.appendChild(t); rem-=d; } });
+      bjBjLog(`↩ Repeating last bet: $${amt}.`,'info');
+    } else if(bjLastBet>0){
+      bjBjLog(`Not enough to repeat last bet of $${bjLastBet}.`,'lose'); return;
+    } else {
+      bjBjLog('⚠️ Tap the bet circle to place a bet first.','info'); return;
+    }
+  }
+  bjLastBet=bjBet;
+
+  // Clear previous hand — reset all split state too
+  bjPlayerCards=[]; bjDealerCards=[]; bjSplitting=false; bjSplitHand1=[]; bjSplitHand2=[]; bjActiveHand=0;
+  document.getElementById('bjSplitHands').style.display='none';
+  document.getElementById('bjSingleHand').style.display='';
+  document.getElementById('bjPlayerHand').innerHTML='';
+  document.getElementById('bjDealerHand').innerHTML='';
+  document.getElementById('bjPlayerValue').textContent='';
+  document.getElementById('bjDealerValue').textContent='';
+  document.getElementById('bjInsuranceRow').style.display='none';
+
   if(bjDeck.length<20) bjBuildDeck();
   bjPlayerCards=[bjDraw(),bjDraw()];
   bjDealerCards=[bjDraw(),bjDraw()];
@@ -1055,7 +1431,6 @@ function bjDeal(){
   const pv=bjHandTotal(bjPlayerCards);
   const dv=bjHandTotal(bjDealerCards);
 
-  // Check for insurance
   if(bjDealerCards[0].rank==='A'){
     document.getElementById('bjInsuranceRow').style.display='block';
     bjBjLog('Dealer shows Ace. Insurance offered (2:1 — not recommended, 7.7% edge).','info');
@@ -1063,7 +1438,6 @@ function bjDeal(){
     document.getElementById('bjInsuranceRow').style.display='none';
   }
 
-  // Check BJ
   if(pv===21&&dv===21){ bjReveal(); bjBjLog('Both have Blackjack — Push!','info'); bjEndHand(0); return; }
   if(pv===21){ bjReveal(); bjBjLog('🎉 Blackjack! You win 3:2!','win'); bjEndHand(Math.floor(bjBet*1.5)); return; }
   if(dv===21){ bjReveal(); bjBjLog('Dealer has Blackjack. You lose.','lose'); bjEndHand(-bjBet); return; }
@@ -1073,37 +1447,93 @@ function bjDeal(){
 }
 
 function bjHit(){
-  bjPlayerCards.push(bjDraw());
-  bjRenderHands();
-  document.getElementById('bjInsuranceRow').style.display='none';
-  document.getElementById('bjDoubleBtn').disabled=true;
-  document.getElementById('bjSplitBtn').disabled=true;
-  const pv=bjHandTotal(bjPlayerCards);
-  bjBjLog(`Hit — hand: ${pv}`);
-  bjUpdateStrategy();
-  if(pv>21){ bjReveal(); bjBjLog('💥 Bust! You lose.','lose'); bjEndHand(-bjBet); }
-  else if(pv===21){ bjBjLog('21 — perfect! Standing automatically.'); bjStand(); }
+  if(bjSplitting){
+    const hand=bjActiveHand===0?bjSplitHand1:bjSplitHand2;
+    hand.push(bjDraw());
+    bjRenderHands();
+    document.getElementById('bjDoubleBtn').disabled=true;
+    document.getElementById('bjSplitBtn').disabled=true;
+    const pv=bjHandTotal(hand);
+    bjBjLog(`Hand ${bjActiveHand+1} hit — total: ${pv}`);
+    bjUpdateStrategy();
+    if(pv>21){
+      bjBjLog(`💥 Hand ${bjActiveHand+1} busts!`,'lose');
+      if(bjActiveHand===0){ bjStartHand2(); }
+      else { bjPhase='dealer'; bjSetButtons('dealer'); setTimeout(bjDealerPlay,400); }
+    } else if(pv===21){
+      bjBjLog(`Hand ${bjActiveHand+1} is 21 — standing.`);
+      if(bjActiveHand===0){ bjStartHand2(); }
+      else { bjPhase='dealer'; bjSetButtons('dealer'); setTimeout(bjDealerPlay,400); }
+    }
+  } else {
+    bjPlayerCards.push(bjDraw());
+    bjRenderHands();
+    document.getElementById('bjInsuranceRow').style.display='none';
+    document.getElementById('bjDoubleBtn').disabled=true;
+    document.getElementById('bjSplitBtn').disabled=true;
+    const pv=bjHandTotal(bjPlayerCards);
+    bjBjLog(`Hit — hand: ${pv}`);
+    bjUpdateStrategy();
+    if(pv>21){ bjReveal(); bjBjLog('💥 Bust! You lose.','lose'); bjEndHand(-bjBet); }
+    else if(pv===21){ bjBjLog('21 — perfect! Standing automatically.'); bjStand(); }
+  }
 }
 
 function bjStand(){
-  bjPhase='dealer';
-  document.getElementById('bjInsuranceRow').style.display='none';
-  bjSetButtons('dealer');
-  bjBjLog('Standing. Dealer plays now…');
-  setTimeout(bjDealerPlay, 400);
+  if(bjSplitting){
+    bjBjLog(`Hand ${bjActiveHand+1} stands on ${bjHandTotal(bjActiveHand===0?bjSplitHand1:bjSplitHand2)}.`);
+    if(bjActiveHand===0){ bjStartHand2(); }
+    else { bjPhase='dealer'; bjSetButtons('dealer'); setTimeout(bjDealerPlay,400); }
+  } else {
+    bjPhase='dealer';
+    document.getElementById('bjInsuranceRow').style.display='none';
+    bjSetButtons('dealer');
+    bjBjLog('Standing. Dealer plays now…');
+    setTimeout(bjDealerPlay, 400);
+  }
+}
+
+function bjStartHand2(){
+  bjActiveHand=1;
+  bjSplitHand2.push(bjDraw());
+  bjRenderHands();
+  bjSetButtons('playing-split');
+  const h2total=bjHandTotal(bjSplitHand2);
+  bjBjLog(`Now playing Hand 2 — total: ${h2total}.`,'info');
+  const isAces=bjSplitHand1[0].rank==='A';
+  if(isAces){
+    bjBjLog('Split Aces — Hand 2 stands automatically.','info');
+    bjPhase='dealer'; bjSetButtons('dealer'); setTimeout(bjDealerPlay,400);
+  } else if(h2total===21){
+    bjBjLog('Hand 2 is 21 — standing automatically.');
+    bjPhase='dealer'; bjSetButtons('dealer'); setTimeout(bjDealerPlay,400);
+  } else {
+    bjUpdateStrategy();
+  }
 }
 
 function bjDouble(){
   if(bjBankroll<bjBet){bjBjLog('Not enough to double!','lose');return;}
-  bjBankroll-=bjBet; bjBet*=2;
+  // Disable Double immediately — can only double once
+  document.getElementById('bjDoubleBtn').disabled=true;
+  document.getElementById('bjSplitBtn').disabled=true;
+
+  const originalBet=bjBet;
+  bjBankroll-=originalBet; bjBet*=2;
   document.getElementById('bjBankroll').textContent='$'+bjBankroll;
-  document.getElementById('bjBetDisplay').textContent='$'+bjBet;
   document.getElementById('bjBetAmt').textContent='$'+bjBet;
-  const t=document.createElement('div'); t.className='chip-token c'+( bjChip>25?100:bjChip); t.textContent='2×';
-  document.getElementById('bjBetChips').appendChild(t);
+
+  // Add chips to circle matching the original bet amount
+  const stack=document.getElementById('bjBetChips');
+  const denoms=[100,25,10,5];
+  let rem=originalBet;
+  denoms.forEach(d=>{ while(rem>=d){ const t=document.createElement('div'); t.className=`chip-token c${d}`; t.textContent='$'+d; stack.appendChild(t); rem-=d; } });
+  // If original bet wasn't divisible by $5 denominations, add a single marker
+  if(rem>0){ const t=document.createElement('div'); t.className='chip-token c5'; t.textContent='+'; stack.appendChild(t); }
+
   bjPlayerCards.push(bjDraw());
   bjRenderHands();
-  bjBjLog(`Doubled down to $${bjBet}. One card drawn.`);
+  bjBjLog(`Doubled down! Bet: $${bjBet}. One card drawn.`);
   bjUpdateStrategy();
   const pv=bjHandTotal(bjPlayerCards);
   if(pv>21){ bjReveal(); bjBjLog('💥 Bust on double! You lose.','lose'); bjEndHand(-bjBet); }
@@ -1112,14 +1542,24 @@ function bjDouble(){
 
 function bjSplit(){
   if(bjBankroll<bjBet){bjBjLog('Not enough to split!','lose');return;}
-  bjBankroll-=bjBet;
+  const isAces=bjPlayerCards[0].rank==='A';
+  bjSplitBet=bjBet;
+  bjBankroll-=bjSplitBet;
   document.getElementById('bjBankroll').textContent='$'+bjBankroll;
-  bjBjLog(`Split! Playing first hand of ${bjPlayerCards[0].rank}'s. Second hand plays after.`,'info');
-  bjSplitCards=[bjPlayerCards[1]];
-  bjPlayerCards=[bjPlayerCards[0],bjDraw()];
+  bjSplitting=true; bjActiveHand=0;
+  bjSplitHand1=[bjPlayerCards[0], bjDraw()];
+  bjSplitHand2=[bjPlayerCards[1]]; // gets second card when hand 2 starts
+  bjPhase='playing-split';
   bjRenderHands();
-  bjUpdateStrategy();
-  bjBjLog(`First split hand: ${bjHandTotal(bjPlayerCards)}.`);
+  bjSetButtons('playing-split');
+  bjBjLog(`Split ${bjPlayerCards[0].rank}s! Two separate $${bjSplitBet} bets.`,'info');
+  if(isAces){
+    bjBjLog('Split Aces — each gets one card only. Moving to Hand 2…','info');
+    bjStartHand2();
+  } else {
+    bjBjLog(`Playing Hand 1 — total: ${bjHandTotal(bjSplitHand1)}.`,'info');
+    bjUpdateStrategy();
+  }
 }
 
 function bjInsurance(){
@@ -1135,7 +1575,6 @@ function bjReveal(){ bjRenderHands(true); }
 
 function bjDealerPlay(){
   bjReveal();
-  const pv=bjHandTotal(bjPlayerCards);
   const animate=()=>{
     const dv=bjHandTotal(bjDealerCards);
     if(dv<17||(dv===17&&bjIsSoft(bjDealerCards))){
@@ -1143,19 +1582,59 @@ function bjDealerPlay(){
       setTimeout(()=>{ bjDealerCards.push(bjDraw()); bjReveal(); animate(); },600);
     } else {
       const dv2=bjHandTotal(bjDealerCards);
-      const pv2=bjHandTotal(bjPlayerCards);
       bjBjLog(`Dealer stands on ${dv2}.`);
-      if(dv2>21){ bjBjLog('Dealer busts! You win! 🎉','win'); bjEndHand(bjBet); }
-      else if(pv2>dv2){ bjBjLog(`You win! ${pv2} beats ${dv2}. 🎉`,'win'); bjEndHand(bjBet); }
-      else if(pv2===dv2){ bjBjLog(`Push — tie at ${pv2}. Bet returned.`,'info'); bjEndHand(0); }
-      else { bjBjLog(`Dealer wins. ${dv2} beats ${pv2}.`,'lose'); bjEndHand(-bjBet); }
+      if(bjSplitting){ bjResolveSplit(dv2); }
+      else {
+        const pv2=bjHandTotal(bjPlayerCards);
+        if(dv2>21){ bjBjLog('Dealer busts! You win! 🎉','win'); bjEndHand(bjBet); }
+        else if(pv2>dv2){ bjBjLog(`You win! ${pv2} beats ${dv2}. 🎉`,'win'); bjEndHand(bjBet); }
+        else if(pv2===dv2){ bjBjLog(`Push — tie at ${pv2}.`,'info'); bjEndHand(0); }
+        else { bjBjLog(`Dealer wins. ${dv2} beats ${pv2}.`,'lose'); bjEndHand(-bjBet); }
+      }
     }
   };
   animate();
 }
 
+function bjResolveSplit(dealerTotal){
+  let totalNet=0;
+  [bjSplitHand1, bjSplitHand2].forEach((hand,i)=>{
+    const hv=bjHandTotal(hand);
+    const label=`Hand ${i+1} (${hv})`;
+    if(hv>21){
+      bjBjLog(`${label} already busted — loses $${bjSplitBet}.`,'lose');
+      totalNet-=bjSplitBet;
+    } else if(dealerTotal>21){
+      bjBjLog(`${label} — dealer busted! Wins $${bjSplitBet}. 🎉`,'win');
+      totalNet+=bjSplitBet;
+    } else if(hv>dealerTotal){
+      bjBjLog(`${label} beats dealer ${dealerTotal}. Wins $${bjSplitBet}! 🎉`,'win');
+      totalNet+=bjSplitBet;
+    } else if(hv===dealerTotal){
+      bjBjLog(`${label} ties dealer. Push.`,'info');
+    } else {
+      bjBjLog(`${label} loses to dealer ${dealerTotal}. Loses $${bjSplitBet}.`,'lose');
+      totalNet-=bjSplitBet;
+    }
+  });
+  bjBankroll+=(bjSplitBet*2)+totalNet;
+  document.getElementById('bjBankroll').textContent='$'+bjBankroll;
+  if(totalNet>0){const el=document.getElementById('bjBankroll');el.classList.add('win-anim');setTimeout(()=>el.classList.remove('win-anim'),400);}
+  if(totalNet>0) bjBjLog(`💰 Split net: +$${totalNet}. Bankroll: $${bjBankroll}.`,'win');
+  else if(totalNet<0) bjBjLog(`📉 Split net: -$${Math.abs(totalNet)}. Bankroll: $${bjBankroll}.`,'lose');
+  else bjBjLog(`Split — break even. Bankroll: $${bjBankroll}.`,'info');
+  if(bjBankroll===0){bjBjLog('😢 Bankroll gone — refilled to $500.','info');bjBankroll=500;document.getElementById('bjBankroll').textContent='$500';}
+  bjBjLog('Review the cards, then tap Deal to play again.','info');
+  showNetPopup(totalNet);
+  bjBet=0; bjSplitBet=0; bjSplitting=false; bjActiveHand=0; bjPhase='bet';
+  document.getElementById('bjBetChips').innerHTML='';
+  document.getElementById('bjBetLabel').style.display='';
+  document.getElementById('bjBetAmt').textContent='$0';
+  bjSetButtons('bet'); bjUpdateStrategy();
+}
+
 function bjEndHand(net){
-  bjPhase='done';
+  bjPhase='bet';
   bjBankroll+=bjBet+net;
   document.getElementById('bjBankroll').textContent='$'+bjBankroll;
   if(net>0){const el=document.getElementById('bjBankroll');el.classList.add('win-anim');setTimeout(()=>el.classList.remove('win-anim'),400);}
@@ -1163,25 +1642,13 @@ function bjEndHand(net){
   else if(net<0) bjBjLog(`📉 Net: -$${Math.abs(net)}. Bankroll: $${bjBankroll}.`,'lose');
   else bjBjLog(`Push — bet returned. Bankroll: $${bjBankroll}.`,'info');
   if(bjBankroll===0){bjBjLog('😢 Bankroll gone — refilled to $500.','info');bjBankroll=500;document.getElementById('bjBankroll').textContent='$500';}
-  bjBjLog('📋 Review the cards above, then click Next Hand ➜ when ready.','info');
-  bjSetButtons('done');
-  bjUpdateStrategy();
-}
-
-function bjNextHand(){
-  bjBet=0; bjPhase='bet'; bjPlayerCards=[]; bjDealerCards=[]; bjSplitCards=[];
-  document.getElementById('bjPlayerHand').innerHTML='';
-  document.getElementById('bjDealerHand').innerHTML='';
-  document.getElementById('bjPlayerValue').textContent='';
-  document.getElementById('bjDealerValue').textContent='';
+  bjBjLog('Review the cards, then tap Deal to play again.','info');
+  showNetPopup(net);
+  bjBet=0; bjSplitting=false; bjActiveHand=0;
   document.getElementById('bjBetChips').innerHTML='';
   document.getElementById('bjBetLabel').style.display='';
-  document.getElementById('bjBetDisplay').textContent='$0';
   document.getElementById('bjBetAmt').textContent='$0';
-  document.getElementById('bjInsuranceRow').style.display='none';
-  bjSetButtons('bet');
-  bjBjLog('✨ New hand ready — place your bet!','info');
-  bjUpdateStrategy();
+  bjSetButtons('bet'); bjUpdateStrategy();
 }
 
 // BLACKJACK STRATEGY ENGINE
@@ -1236,27 +1703,27 @@ function bjUpdateStrategy(){
   const txt=document.getElementById('bjStratText');
   if(bjPhase==='bet'){
     box.className='strategy-box suggest-good';
-    txt.textContent=`You have $${bjBankroll} and a bet of $${bjBet}. Place your chips on the circle and hit Deal. A good rule: never bet more than 5% of your bankroll on a single hand ($${Math.floor(bjBankroll*0.05)} max recommended).`;
+    const hasCards=bjPlayerCards.length>0;
+    const repeatHint=bjLastBet>0?` Tap Deal to repeat $${bjLastBet}, or tap the circle to change your bet.`:' Tap the circle to place chips, then Deal.';
+    const reviewHint=hasCards?' Cards from the last hand are shown above.':'';
+    txt.textContent=`Bankroll: $${bjBankroll}. Current bet: $${bjBet}.${repeatHint}${reviewHint} Max recommended bet: $${Math.floor(bjBankroll*0.05)}.`;
     return;
   }
-  if(bjPhase==='playing'&&bjPlayerCards.length>0&&bjDealerCards.length>0){
-    const pv=bjHandTotal(bjPlayerCards);
+  if((bjPhase==='playing'||bjPhase==='playing-split')&&bjDealerCards.length>0){
+    const cards=bjActiveCards();
+    if(cards.length===0) return;
+    const pv=bjHandTotal(cards);
     const du=bjDealerCards[0];
-    const strat=bjGetBasicStrategy(bjPlayerCards,du);
-    const isPair=bjPlayerCards.length===2&&bjPlayerCards[0].rank===bjPlayerCards[1].rank;
-    const soft=bjIsSoft(bjPlayerCards)&&bjPlayerCards.length===2;
-    const handDesc=(soft?'Soft ':'')+(isPair?`Pair of ${bjPlayerCards[0].rank}'s`:pv.toString());
+    const strat=bjGetBasicStrategy(cards,du);
+    const isPair=cards.length===2&&cards[0].rank===cards[1].rank;
+    const soft=bjIsSoft(cards)&&cards.length===2;
+    const handDesc=(soft?'Soft ':'')+(isPair?`Pair of ${cards[0].rank}'s`:pv.toString());
+    const handLabel=bjSplitting?`Hand ${bjActiveHand+1}: `:'';
     box.className='strategy-box suggest-good';
-    txt.textContent=`🎯 Basic Strategy says: ${strat.move} — Hand: ${handDesc} vs Dealer ${du.rank}. ${strat.reason}`;
-    // color code
+    txt.textContent=`🎯 ${handLabel}Basic Strategy says: ${strat.move} — ${handDesc} vs Dealer ${du.rank}. ${strat.reason}`;
     if(strat.move==='STAND') box.className='strategy-box suggest-caution';
     if(strat.move==='DOUBLE'||strat.move==='SPLIT') box.className='strategy-box suggest-good';
-    // Log it
-    bjBjLog(`📊 Strategy: ${strat.move} (${handDesc} vs ${du.rank})`, 'strategy');
-  }
-  if(bjPhase==='done'){
-    box.className='strategy-box suggest-good';
-    txt.textContent='Hand complete. Study the final cards, then click Next Hand ➜ to continue. Basic Strategy reduces the house edge to ~0.5% — match the coach\'s recommendation every time to play optimally.';
+    bjBjLog(`📊 Strategy: ${strat.move} (${handLabel}${handDesc} vs ${du.rank})`, 'strategy');
   }
 }
 
