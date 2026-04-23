@@ -97,6 +97,14 @@ header p{font-size:1.5rem;color:var(--ivory-dim);font-style:italic;margin-top:0.
 .bet-zone.highlighted{border-color:var(--gold-light)!important;box-shadow:0 0 16px rgba(201,168,76,0.6)!important;animation:pulse 1.2s ease-in-out infinite}
 .bet-zone.win-flash{background:#1a4a1a!important;border-color:#4caf50!important;box-shadow:0 0 20px rgba(76,175,80,0.8)!important}
 .bet-zone.lose-flash{background:#4a1a1a!important;border-color:#f44336!important;box-shadow:0 0 20px rgba(244,67,54,0.8)!important}
+/* Persistent result colours — cleared only when next bet placed */
+.bet-zone.zone-won{background:#122b12!important;border-color:#4caf50!important;box-shadow:0 0 10px rgba(76,175,80,0.35)!important}
+.bet-zone.zone-lost{background:#2b1212!important;border-color:#e53935!important;box-shadow:0 0 10px rgba(229,57,53,0.35)!important}
+/* Come-bet arrow badge */
+.come-arrow{position:absolute;top:3px;left:3px;background:rgba(201,168,76,0.92);color:#000;
+  font-size:0.7rem;font-family:'Playfair Display',serif;font-weight:900;padding:2px 6px;
+  border-radius:3px;letter-spacing:0.04em;animation:arrowPop 0.4s ease;z-index:8;pointer-events:none}
+@keyframes arrowPop{from{transform:scale(0.5);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes pulse{0%,100%{box-shadow:0 0 8px rgba(201,168,76,0.4)}50%{box-shadow:0 0 22px rgba(201,168,76,0.9)}}
 .bet-label{font-size:clamp(0.7rem,1.6vw,1rem);color:var(--ivory);letter-spacing:0.06em;text-transform:uppercase;line-height:1.2}
 .bet-label.large{font-size:clamp(1rem,2.2vw,1.35rem);font-weight:700}
@@ -305,25 +313,49 @@ footer{text-align:center;padding:2rem;color:rgba(245,240,225,0.22);font-size:1re
     </div>
   </div>
 
-  <!-- DICE -->
-  <div class="dice-area">
-    <div class="die" id="die1">
-      <div class="pip" id="d1p1"></div><div class="pip" id="d1p2"></div><div class="pip" id="d1p3"></div>
-      <div class="pip" id="d1p4"></div><div class="pip" id="d1p5"></div><div class="pip" id="d1p6"></div>
-      <div class="pip" id="d1p7"></div><div class="pip" id="d1p8"></div><div class="pip" id="d1p9"></div>
+  <!-- DICE + CONTROLS ROW -->
+  <div class="controls" style="align-items:center;">
+    <div class="bankroll-display">
+      <div class="bankroll-label">💰 Bankroll</div>
+      <div class="bankroll-amount" id="cBankroll">$500</div>
     </div>
-    <div class="roll-result">
-      <div class="total" id="cRollTotal">—</div>
-      <div class="outcome" id="cRollOutcome">Place a bet &amp; roll</div>
+
+    <!-- DICE inline -->
+    <div class="dice-area" style="margin-bottom:0;padding:0;gap:0.8rem;">
+      <div class="die" id="die1">
+        <div class="pip" id="d1p1"></div><div class="pip" id="d1p2"></div><div class="pip" id="d1p3"></div>
+        <div class="pip" id="d1p4"></div><div class="pip" id="d1p5"></div><div class="pip" id="d1p6"></div>
+        <div class="pip" id="d1p7"></div><div class="pip" id="d1p8"></div><div class="pip" id="d1p9"></div>
+      </div>
+      <div class="roll-result">
+        <div class="total" id="cRollTotal">—</div>
+        <div class="outcome" id="cRollOutcome">Place a bet &amp; roll</div>
+      </div>
+      <div class="die" id="die2">
+        <div class="pip" id="d2p1"></div><div class="pip" id="d2p2"></div><div class="pip" id="d2p3"></div>
+        <div class="pip" id="d2p4"></div><div class="pip" id="d2p5"></div><div class="pip" id="d2p6"></div>
+        <div class="pip" id="d2p7"></div><div class="pip" id="d2p8"></div><div class="pip" id="d2p9"></div>
+      </div>
     </div>
-    <div class="die" id="die2">
-      <div class="pip" id="d2p1"></div><div class="pip" id="d2p2"></div><div class="pip" id="d2p3"></div>
-      <div class="pip" id="d2p4"></div><div class="pip" id="d2p5"></div><div class="pip" id="d2p6"></div>
-      <div class="pip" id="d2p7"></div><div class="pip" id="d2p8"></div><div class="pip" id="d2p9"></div>
+
+    <div class="chip-selector">
+      <div class="chip-selector-label">Chip Value</div>
+      <div class="chip-buttons">
+        <button class="chip-btn c5 selected" onclick="cSelectChip(5,this)">$5</button>
+        <button class="chip-btn c10" onclick="cSelectChip(10,this)">$10</button>
+        <button class="chip-btn c25" onclick="cSelectChip(25,this)">$25</button>
+        <button class="chip-btn c100" onclick="cSelectChip(100,this)">$100</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.3rem;align-items:center;justify-content:center">
+      <div style="font-size:0.95rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--ivory-dim)">Wagered</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--gold-light)" id="cWagered">$0</div>
+    </div>
+    <div class="action-buttons">
+      <button class="btn btn-roll" id="cRollBtn" onclick="cRollDice()">🎲 Roll Dice</button>
+      <button class="btn btn-clear" onclick="cClearBets()">Clear Bets</button>
     </div>
   </div>
-
-  <!-- CRAPS TABLE -->
   <div class="table-wrapper">
     <div class="craps-table">
       <div class="row-pass">
@@ -376,31 +408,6 @@ footer{text-align:center;padding:2rem;color:rgba(245,240,225,0.22);font-size:1re
         <div class="bet-zone" id="cz-yo11" onclick="cPlaceBet('yo11',this)"><span class="bet-label">YO (11)</span><span class="bet-label odds">15:1 · Edge 11.1%</span><div class="chip-stack" id="cch-yo11"></div></div>
         <div class="bet-zone" id="cz-anycraps" onclick="cPlaceBet('anycraps',this)"><span class="bet-label">ANY CRAPS</span><span class="bet-label odds">7:1 · Edge 11.1%</span><div class="chip-stack" id="cch-anycraps"></div></div>
       </div>
-    </div>
-  </div>
-
-  <!-- CONTROLS -->
-  <div class="controls">
-    <div class="bankroll-display">
-      <div class="bankroll-label">💰 Bankroll</div>
-      <div class="bankroll-amount" id="cBankroll">$500</div>
-    </div>
-    <div class="chip-selector">
-      <div class="chip-selector-label">Chip Value</div>
-      <div class="chip-buttons">
-        <button class="chip-btn c5 selected" onclick="cSelectChip(5,this)">$5</button>
-        <button class="chip-btn c10" onclick="cSelectChip(10,this)">$10</button>
-        <button class="chip-btn c25" onclick="cSelectChip(25,this)">$25</button>
-        <button class="chip-btn c100" onclick="cSelectChip(100,this)">$100</button>
-      </div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:0.3rem;align-items:center;justify-content:center">
-      <div style="font-size:0.95rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--ivory-dim)">Wagered</div>
-      <div style="font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--gold-light)" id="cWagered">$0</div>
-    </div>
-    <div class="action-buttons">
-      <button class="btn btn-roll" id="cRollBtn" onclick="cRollDice()">🎲 Roll Dice</button>
-      <button class="btn btn-clear" onclick="cClearBets()">Clear Bets</button>
     </div>
   </div>
 
@@ -602,6 +609,7 @@ function switchGame(game, btn){
 // ══════════════════════════════════════════════
 const PIP_MAP={1:[5],2:[1,9],3:[1,5,9],4:[1,3,7,9],5:[1,3,5,7,9],6:[1,3,4,6,7,9]};
 let cBankroll=500, cChip=5, cBets={}, cPoint=null, cPhase='comeout';
+let cComeBetActive=false; // true when a come bet is riding and waiting to be assigned a number
 
 function setDieFace(n,v){
   for(let i=1;i<=9;i++) document.getElementById(`d${n}p${i}`).classList.toggle('show',PIP_MAP[v].includes(i));
@@ -613,12 +621,24 @@ function cSelectChip(v,btn){
   btn.classList.add('selected');
 }
 
+// Clear all persistent result colouring when a new bet round starts
+function cClearResultColours(){
+  document.querySelectorAll('.bet-zone').forEach(z=>{
+    z.classList.remove('zone-won','zone-lost');
+  });
+  // Remove any come-arrow badges
+  document.querySelectorAll('.come-arrow').forEach(a=>a.remove());
+}
+
 function cPlaceBet(key,el){
   if(cBankroll<cChip){cAddLog('Not enough funds!','lose');return;}
+  // Clear persistent result colours when player places a new bet
+  cClearResultColours();
   cBankroll-=cChip; cBets[key]=(cBets[key]||0)+cChip;
   document.getElementById('cBankroll').textContent='$'+cBankroll;
   const stack=document.getElementById('cch-'+key);
   if(stack){const t=document.createElement('div');t.className=`chip-token c${cChip>25?100:cChip}`;t.textContent='$'+cChip;stack.appendChild(t);}
+  if(key==='come') cComeBetActive=true;
   cAddLog(`Placed $${cChip} on ${key.toUpperCase()}. Zone total: $${cBets[key]}.`);
   cUpdateWagered(); cUpdateStrategy();
 }
@@ -628,7 +648,10 @@ function cUpdateWagered(){
 }
 
 function cClearBets(){
-  cBets={}; document.querySelectorAll('[id^="cch-"]').forEach(s=>s.innerHTML=''); cUpdateWagered();
+  cBets={}; cComeBetActive=false;
+  document.querySelectorAll('[id^="cch-"]').forEach(s=>s.innerHTML='');
+  cClearResultColours();
+  cUpdateWagered();
 }
 
 function cAddLog(msg,type=''){
@@ -638,10 +661,41 @@ function cAddLog(msg,type=''){
   while(log.children.length>35) log.removeChild(log.firstChild);
 }
 
-function cFlash(id,type){
+// Persistent colour: stays until next bet is placed
+function cMarkZone(id,type){
   const el=document.getElementById(id); if(!el)return;
-  const cls=type==='win'?'win-flash':'lose-flash';
-  el.classList.add(cls); setTimeout(()=>el.classList.remove(cls),700);
+  // Brief bright flash first, then settle to persistent colour
+  const flashCls=type==='win'?'win-flash':'lose-flash';
+  const persistCls=type==='win'?'zone-won':'zone-lost';
+  el.classList.add(flashCls);
+  setTimeout(()=>{ el.classList.remove(flashCls); el.classList.add(persistCls); }, 700);
+}
+
+// Legacy alias kept for compatibility
+function cFlash(id,type){ cMarkZone(id,type); }
+
+// Show come-bet arrow on a number zone
+function cShowComeArrow(num){
+  const zone=document.getElementById('cz-place'+num); if(!zone)return;
+  // Remove any existing arrow on this zone
+  zone.querySelectorAll('.come-arrow').forEach(a=>a.remove());
+  const badge=document.createElement('div');
+  badge.className='come-arrow';
+  badge.textContent='COME ↓';
+  zone.appendChild(badge);
+}
+
+// Move come-bet chips to a number zone visually
+function cMoveComeChips(num){
+  const fromStack=document.getElementById('cch-come');
+  const toStack=document.getElementById('cch-place'+num);
+  if(!fromStack||!toStack)return;
+  // Clone chips across
+  Array.from(fromStack.children).forEach(chip=>{
+    const clone=chip.cloneNode(true);
+    toStack.appendChild(clone);
+  });
+  fromStack.innerHTML='';
 }
 
 function cApplyNet(amount,partial=false){
@@ -758,6 +812,16 @@ function cResolveBets(d1,d2,t){
       cPoint=t; cPhase='point';
       outEl.textContent=`Point is ${t} — Roll again!`; outEl.classList.add('point-set');
       cAddLog(`📍 Point set: ${t}. Roll ${t} before 7 to win.`,'point');
+      // If a come bet is active and the come-out roll sets a point, move the come bet to that number
+      if(cComeBetActive && cBets['come'] && cPhase==='point'){
+        cAddLog(`↪ Come bet moves to ${t}!`,'point');
+        cMoveComeChips(t);
+        cShowComeArrow(t);
+        // Transfer come bet to place-number tracking
+        cBets['place'+t]=(cBets['place'+t]||0)+cBets['come'];
+        delete cBets['come'];
+        cComeBetActive=false;
+      }
       cMovePuck(t); net+=cResolveOneRolls(t,d1,d2); cApplyNet(net);
     }
   } else {
@@ -772,7 +836,7 @@ function cResolveBets(d1,d2,t){
         if(cBets[k]){net-=cBets[k];cFlash('cz-'+k,'lose');}
       });
       net+=cResolveOneRolls(t,d1,d2); cApplyNet(net); cResetPuck(); cClearBets();
-      cPoint=null; cPhase='comeout'; cAddLog('🔄 New Come-Out roll starting.','info');
+      cPoint=null; cPhase='comeout'; cComeBetActive=false; cAddLog('🔄 New Come-Out roll starting.','info');
     } else if(t===cPoint){
       outEl.textContent=`Point ${cPoint} — Pass Line wins!`; outEl.classList.add('point-win');
       cAddLog(`✅ Point ${cPoint} made! Pass Line wins.`,'win');
@@ -781,10 +845,19 @@ function cResolveBets(d1,d2,t){
       if(cBets['come']){net+=cBets['come']*2;cFlash('cz-come','win');}
       net+=cResolvePlaceHard(t,d1,d2,isHard); net+=cResolveOneRolls(t,d1,d2);
       cApplyNet(net); cResetPuck(); cClearBets();
-      cPoint=null; cPhase='comeout'; cAddLog('🔄 New Come-Out roll starting.','info');
+      cPoint=null; cPhase='comeout'; cComeBetActive=false; cAddLog('🔄 New Come-Out roll starting.','info');
     } else {
       outEl.textContent=`Rolled ${t} — Point still ${cPoint}`; outEl.classList.add('point-set');
       cAddLog(`🎲 Rolled ${t}. Shooting for ${cPoint}.`);
+      // Come bet movement: if come bet active and rolled a point number, move it
+      if(cComeBetActive && cBets['come'] && [4,5,6,8,9,10].includes(t)){
+        cAddLog(`↪ Come bet moves to ${t}!`,'point');
+        cMoveComeChips(t);
+        cShowComeArrow(t);
+        cBets['place'+t]=(cBets['place'+t]||0)+cBets['come'];
+        delete cBets['come'];
+        cComeBetActive=false;
+      }
       net+=cResolvePlaceHard(t,d1,d2,isHard); net+=cResolveOneRolls(t,d1,d2);
       cApplyNet(net,true); cRemoveWonPlace(t,isHard);
     }
