@@ -114,6 +114,24 @@ header p{font-size:1.5rem;color:var(--ivory-dim);font-style:italic;margin-top:0.
 .come-odds-btn:hover{background:rgba(100,200,100,0.3);}
 .bet-zone.removable::after{content:'✕';position:absolute;top:2px;right:4px;
   font-size:0.6rem;color:rgba(255,180,60,0.7);pointer-events:none;}
+.win-prob{font-size:0.55rem;color:rgba(180,220,180,0.85);background:rgba(20,40,20,0.5);
+  padding:1px 4px;border-radius:3px;margin-top:2px;letter-spacing:0.04em;
+  border:1px solid rgba(76,175,80,0.25);text-align:center;line-height:1.3}
+.win-prob.low{color:rgba(255,200,200,0.85);background:rgba(40,20,20,0.5);border-color:rgba(244,67,54,0.25)}
+.win-prob.med{color:rgba(255,230,180,0.85);background:rgba(40,30,15,0.5);border-color:rgba(255,193,7,0.3)}
+
+/* Blackjack stand vs hit probability box */
+.bj-prob-box{font-family:'Crimson Pro',serif;font-size:0.72rem;line-height:1.35;
+  background:rgba(15,30,15,0.65);border:1px solid rgba(76,175,80,0.3);border-radius:6px;
+  padding:4px 8px;margin-top:4px;color:var(--ivory);max-width:240px;text-align:center;
+  letter-spacing:0.02em}
+.bj-prob-box .prob-row{display:flex;justify-content:space-between;gap:0.6rem;margin-top:1px}
+.bj-prob-box .prob-label{color:var(--ivory-dim);text-transform:uppercase;font-size:0.6rem;letter-spacing:0.1em}
+.bj-prob-box .prob-pct{color:#8fda8f;font-weight:700;font-family:'Playfair Display',serif}
+.bj-prob-box .prob-pct.low{color:#e57373}
+.bj-prob-box .prob-pct.med{color:#ffb74d}
+.bj-prob-box .recommend{margin-top:3px;padding-top:3px;border-top:1px dashed rgba(201,168,76,0.25);
+  font-size:0.62rem;color:var(--gold-light);text-transform:uppercase;letter-spacing:0.08em}
 .bet-label{font-size:clamp(0.7rem,1.6vw,1rem);color:var(--ivory);letter-spacing:0.06em;text-transform:uppercase;line-height:1.2}
 .bet-label.large{font-size:clamp(1rem,2.2vw,1.35rem);font-weight:700}
 .bet-label.odds{font-size:clamp(0.6rem,1.2vw,0.82rem);color:var(--ivory-dim);margin-top:2px}
@@ -122,6 +140,7 @@ header p{font-size:1.5rem;color:var(--ivory-dim);font-style:italic;margin-top:0.
 .chip-token{width:20px;height:20px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);
   display:flex;align-items:center;justify-content:center;font-size:0.48rem;font-weight:700;
   font-family:'Playfair Display',serif;box-shadow:0 2px 4px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.2);color:white}
+.chip-token.c1{background:linear-gradient(135deg,#888,#555)}
 .chip-token.c5{background:var(--chip-red)}.chip-token.c10{background:var(--chip-blue)}
 .chip-token.c25{background:var(--chip-green)}.chip-token.c100{background:var(--chip-black)}
 
@@ -260,6 +279,7 @@ header p{font-size:1.5rem;color:var(--ivory-dim);font-style:italic;margin-top:0.
   box-shadow:0 3px 6px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.2)}
 .chip-btn:hover{transform:translateY(-2px) scale(1.08)}
 .chip-btn.selected{transform:translateY(-4px) scale(1.12);box-shadow:0 6px 16px rgba(0,0,0,0.6),0 0 12px rgba(201,168,76,0.6)}
+.chip-btn.c1{background:linear-gradient(135deg,#888,#555);color:#fff}
 .chip-btn.c5{background:var(--chip-red)}.chip-btn.c10{background:var(--chip-blue)}
 .chip-btn.c25{background:var(--chip-green)}.chip-btn.c100{background:var(--chip-black)}
 .action-buttons{display:flex;flex-direction:column;gap:0.5rem;margin-left:auto}
@@ -382,6 +402,7 @@ footer{text-align:center;padding:2rem;color:rgba(245,240,225,0.22);font-size:1re
     <div class="chip-selector">
       <div class="chip-selector-label">Chip Value</div>
       <div class="chip-buttons">
+        <button class="chip-btn c1" onclick="cSelectChip(1,this)">$1</button>
         <button class="chip-btn c5 selected" onclick="cSelectChip(5,this)">$5</button>
         <button class="chip-btn c10" onclick="cSelectChip(10,this)">$10</button>
         <button class="chip-btn c25" onclick="cSelectChip(25,this)">$25</button>
@@ -403,7 +424,7 @@ footer{text-align:center;padding:2rem;color:rgba(245,240,225,0.22);font-size:1re
         <div class="bet-zone" id="cz-pass" onclick="cPlaceBet('pass',this)">
           <span class="bet-label large">PASS LINE</span>
           <span class="bet-label odds">Pays 1:1 · Edge 1.41%</span>
-          <div class="chip-stack" id="cch-pass"></div>
+          <div class="chip-stack" id="cch-pass"></div><div class="win-prob" id="wp-pass">—</div>
           <button class="odds-btn" id="odds-pass-btn" onclick="event.stopPropagation();cPlaceOdds('pass')" style="display:none">+ ODDS</button>
           <div class="chip-stack" id="cch-pass-odds" style="border-top:1px dashed rgba(201,168,76,0.3);margin-top:2px;padding-top:2px"></div>
           <div class="puck off" id="puck">OFF</div>
@@ -411,47 +432,47 @@ footer{text-align:center;padding:2rem;color:rgba(245,240,225,0.22);font-size:1re
         <div class="bet-zone" id="cz-dontpass" onclick="cPlaceBet('dontpass',this)">
           <span class="bet-label">DON'T PASS BAR ⚄⚄</span>
           <span class="bet-label odds">Edge 1.36%</span>
-          <div class="chip-stack" id="cch-dontpass"></div>
+          <div class="chip-stack" id="cch-dontpass"></div><div class="win-prob" id="wp-dontpass">—</div>
           <button class="odds-btn" id="odds-dontpass-btn" onclick="event.stopPropagation();cPlaceOdds('dontpass')" style="display:none">+ LAY ODDS</button>
           <div class="chip-stack" id="cch-dontpass-odds" style="border-top:1px dashed rgba(201,168,76,0.3);margin-top:2px;padding-top:2px"></div>
         </div>
         <div class="bet-zone" id="cz-come" onclick="cPlaceBet('come',this)">
           <span class="bet-label large">COME</span>
           <span class="bet-label odds">1:1 · after point set</span>
-          <div class="chip-stack" id="cch-come"></div>
+          <div class="chip-stack" id="cch-come"></div><div class="win-prob" id="wp-come">—</div>
         </div>
         <div class="bet-zone" id="cz-dontcome" onclick="cPlaceBet('dontcome',this)">
           <span class="bet-label">DON'T COME BAR ⚄⚄</span>
-          <div class="chip-stack" id="cch-dontcome"></div>
+          <div class="chip-stack" id="cch-dontcome"></div><div class="win-prob" id="wp-dontcome">—</div>
         </div>
       </div>
       <div class="row-numbers">
-        <div class="bet-zone" id="cz-place4" onclick="cPlaceBet('place4',this)"><span class="number-label">4</span><span class="bet-label odds">9:5 · Edge 6.7%</span><div class="chip-stack" id="cch-place4"></div><div class="chip-stack come-odds-stack" id="cch-comeodds4"></div></div>
-        <div class="bet-zone" id="cz-place5" onclick="cPlaceBet('place5',this)"><span class="number-label">5</span><span class="bet-label odds">7:5 · Edge 4.0%</span><div class="chip-stack" id="cch-place5"></div><div class="chip-stack come-odds-stack" id="cch-comeodds5"></div></div>
-        <div class="bet-zone" id="cz-place6" onclick="cPlaceBet('place6',this)"><span class="number-label">6</span><span class="bet-label odds">7:6 · Edge 1.5%</span><div class="chip-stack" id="cch-place6"></div><div class="chip-stack come-odds-stack" id="cch-comeodds6"></div></div>
-        <div class="bet-zone" id="cz-place8" onclick="cPlaceBet('place8',this)"><span class="number-label">8</span><span class="bet-label odds">7:6 · Edge 1.5%</span><div class="chip-stack" id="cch-place8"></div><div class="chip-stack come-odds-stack" id="cch-comeodds8"></div></div>
-        <div class="bet-zone" id="cz-place9" onclick="cPlaceBet('place9',this)"><span class="number-label">9</span><span class="bet-label odds">7:5 · Edge 4.0%</span><div class="chip-stack" id="cch-place9"></div><div class="chip-stack come-odds-stack" id="cch-comeodds9"></div></div>
-        <div class="bet-zone" id="cz-place10" onclick="cPlaceBet('place10',this)"><span class="number-label">10</span><span class="bet-label odds">9:5 · Edge 6.7%</span><div class="chip-stack" id="cch-place10"></div><div class="chip-stack come-odds-stack" id="cch-comeodds10"></div></div>
+        <div class="bet-zone" id="cz-place4" onclick="cPlaceBet('place4',this)"><span class="number-label">4</span><span class="bet-label odds">9:5 · Edge 6.7%</span><div class="chip-stack" id="cch-place4"></div><div class="win-prob" id="wp-place4">—</div><div class="chip-stack come-odds-stack" id="cch-comeodds4"></div></div>
+        <div class="bet-zone" id="cz-place5" onclick="cPlaceBet('place5',this)"><span class="number-label">5</span><span class="bet-label odds">7:5 · Edge 4.0%</span><div class="chip-stack" id="cch-place5"></div><div class="win-prob" id="wp-place5">—</div><div class="chip-stack come-odds-stack" id="cch-comeodds5"></div></div>
+        <div class="bet-zone" id="cz-place6" onclick="cPlaceBet('place6',this)"><span class="number-label">6</span><span class="bet-label odds">7:6 · Edge 1.5%</span><div class="chip-stack" id="cch-place6"></div><div class="win-prob" id="wp-place6">—</div><div class="chip-stack come-odds-stack" id="cch-comeodds6"></div></div>
+        <div class="bet-zone" id="cz-place8" onclick="cPlaceBet('place8',this)"><span class="number-label">8</span><span class="bet-label odds">7:6 · Edge 1.5%</span><div class="chip-stack" id="cch-place8"></div><div class="win-prob" id="wp-place8">—</div><div class="chip-stack come-odds-stack" id="cch-comeodds8"></div></div>
+        <div class="bet-zone" id="cz-place9" onclick="cPlaceBet('place9',this)"><span class="number-label">9</span><span class="bet-label odds">7:5 · Edge 4.0%</span><div class="chip-stack" id="cch-place9"></div><div class="win-prob" id="wp-place9">—</div><div class="chip-stack come-odds-stack" id="cch-comeodds9"></div></div>
+        <div class="bet-zone" id="cz-place10" onclick="cPlaceBet('place10',this)"><span class="number-label">10</span><span class="bet-label odds">9:5 · Edge 6.7%</span><div class="chip-stack" id="cch-place10"></div><div class="win-prob" id="wp-place10">—</div><div class="chip-stack come-odds-stack" id="cch-comeodds10"></div></div>
       </div>
       <div class="row-field-place">
         <div class="bet-zone" id="cz-field" onclick="cPlaceBet('field',this)" style="min-height:60px">
           <span class="bet-label large">FIELD</span>
           <span class="bet-label odds">2,3,4,9,10,11,12 · 2&amp;12 pay 2:1 · Edge 5.6%</span>
-          <div class="chip-stack" id="cch-field"></div>
+          <div class="chip-stack" id="cch-field"></div><div class="win-prob" id="wp-field">—</div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
-          <div class="bet-zone" id="cz-hard4" onclick="cPlaceBet('hard4',this)"><span class="bet-label">HARD 4</span><span class="bet-label odds">7:1 · 11.1%</span><div class="chip-stack" id="cch-hard4"></div></div>
-          <div class="bet-zone" id="cz-hard6" onclick="cPlaceBet('hard6',this)"><span class="bet-label">HARD 6</span><span class="bet-label odds">9:1 · 9.1%</span><div class="chip-stack" id="cch-hard6"></div></div>
-          <div class="bet-zone" id="cz-hard8" onclick="cPlaceBet('hard8',this)"><span class="bet-label">HARD 8</span><span class="bet-label odds">9:1 · 9.1%</span><div class="chip-stack" id="cch-hard8"></div></div>
-          <div class="bet-zone" id="cz-hard10" onclick="cPlaceBet('hard10',this)"><span class="bet-label">HARD 10</span><span class="bet-label odds">7:1 · 11.1%</span><div class="chip-stack" id="cch-hard10"></div></div>
+          <div class="bet-zone" id="cz-hard4" onclick="cPlaceBet('hard4',this)"><span class="bet-label">HARD 4</span><span class="bet-label odds">7:1 · 11.1%</span><div class="chip-stack" id="cch-hard4"></div><div class="win-prob" id="wp-hard4">—</div></div>
+          <div class="bet-zone" id="cz-hard6" onclick="cPlaceBet('hard6',this)"><span class="bet-label">HARD 6</span><span class="bet-label odds">9:1 · 9.1%</span><div class="chip-stack" id="cch-hard6"></div><div class="win-prob" id="wp-hard6">—</div></div>
+          <div class="bet-zone" id="cz-hard8" onclick="cPlaceBet('hard8',this)"><span class="bet-label">HARD 8</span><span class="bet-label odds">9:1 · 9.1%</span><div class="chip-stack" id="cch-hard8"></div><div class="win-prob" id="wp-hard8">—</div></div>
+          <div class="bet-zone" id="cz-hard10" onclick="cPlaceBet('hard10',this)"><span class="bet-label">HARD 10</span><span class="bet-label odds">7:1 · 11.1%</span><div class="chip-stack" id="cch-hard10"></div><div class="win-prob" id="wp-hard10">—</div></div>
         </div>
       </div>
       <div class="row-props">
-        <div class="bet-zone" id="cz-big6" onclick="cPlaceBet('big6',this)"><span class="bet-label">BIG 6</span><span class="bet-label odds">1:1 · 9.1%</span><div class="chip-stack" id="cch-big6"></div></div>
-        <div class="bet-zone" id="cz-big8" onclick="cPlaceBet('big8',this)"><span class="bet-label">BIG 8</span><span class="bet-label odds">1:1 · 9.1%</span><div class="chip-stack" id="cch-big8"></div></div>
-        <div class="bet-zone" id="cz-any7" onclick="cPlaceBet('any7',this)"><span class="bet-label">ANY 7</span><span class="bet-label odds">4:1 · Edge 16.9% ⚠️</span><div class="chip-stack" id="cch-any7"></div></div>
-        <div class="bet-zone" id="cz-yo11" onclick="cPlaceBet('yo11',this)"><span class="bet-label">YO (11)</span><span class="bet-label odds">15:1 · Edge 11.1%</span><div class="chip-stack" id="cch-yo11"></div></div>
-        <div class="bet-zone" id="cz-anycraps" onclick="cPlaceBet('anycraps',this)"><span class="bet-label">ANY CRAPS</span><span class="bet-label odds">7:1 · Edge 11.1%</span><div class="chip-stack" id="cch-anycraps"></div></div>
+        <div class="bet-zone" id="cz-big6" onclick="cPlaceBet('big6',this)"><span class="bet-label">BIG 6</span><span class="bet-label odds">1:1 · 9.1%</span><div class="chip-stack" id="cch-big6"></div><div class="win-prob" id="wp-big6">—</div></div>
+        <div class="bet-zone" id="cz-big8" onclick="cPlaceBet('big8',this)"><span class="bet-label">BIG 8</span><span class="bet-label odds">1:1 · 9.1%</span><div class="chip-stack" id="cch-big8"></div><div class="win-prob" id="wp-big8">—</div></div>
+        <div class="bet-zone" id="cz-any7" onclick="cPlaceBet('any7',this)"><span class="bet-label">ANY 7</span><span class="bet-label odds">4:1 · Edge 16.9% ⚠️</span><div class="chip-stack" id="cch-any7"></div><div class="win-prob" id="wp-any7">—</div></div>
+        <div class="bet-zone" id="cz-yo11" onclick="cPlaceBet('yo11',this)"><span class="bet-label">YO (11)</span><span class="bet-label odds">15:1 · Edge 11.1%</span><div class="chip-stack" id="cch-yo11"></div><div class="win-prob" id="wp-yo11">—</div></div>
+        <div class="bet-zone" id="cz-anycraps" onclick="cPlaceBet('anycraps',this)"><span class="bet-label">ANY CRAPS</span><span class="bet-label odds">7:1 · Edge 11.1%</span><div class="chip-stack" id="cch-anycraps"></div><div class="win-prob" id="wp-anycraps">—</div></div>
       </div>
     </div>
   </div>
@@ -537,6 +558,7 @@ footer{text-align:center;padding:2rem;color:rgba(245,240,225,0.22);font-size:1re
     <div id="bjSingleHand" style="width:100%">
       <div class="hand-area" id="bjPlayerHand"></div>
       <div class="hand-value" id="bjPlayerValue"></div>
+      <div class="bj-prob-box" id="bjProbSingle" style="display:none"></div>
     </div>
     <!-- Split hands (hidden until split) -->
     <div id="bjSplitHands" style="display:none;width:100%;display:none">
@@ -545,12 +567,14 @@ footer{text-align:center;padding:2rem;color:rgba(245,240,225,0.22);font-size:1re
           <div class="bj-split-label" id="bjSplit1Label">HAND 1</div>
           <div class="hand-area" id="bjHand1" style="min-height:80px"></div>
           <div class="hand-value" id="bjHand1Value"></div>
+          <div class="bj-prob-box" id="bjProb1" style="display:none"></div>
         </div>
         <div style="width:1px;background:rgba(201,168,76,0.2)"></div>
         <div style="flex:1;display:flex;flex-direction:column;align-items:center">
           <div class="bj-split-label" id="bjSplit2Label">HAND 2</div>
           <div class="hand-area" id="bjHand2" style="min-height:80px"></div>
           <div class="hand-value" id="bjHand2Value"></div>
+          <div class="bj-prob-box" id="bjProb2" style="display:none"></div>
         </div>
       </div>
     </div>
@@ -579,6 +603,7 @@ footer{text-align:center;padding:2rem;color:rgba(245,240,225,0.22);font-size:1re
       <div class="bj-chips-inline chip-selector">
         <div class="chip-selector-label">Chip</div>
         <div class="chip-buttons">
+          <button class="chip-btn c1" onclick="bjSelectChip(1,this)">$1</button>
           <button class="chip-btn c5 selected" id="bjChip5" onclick="bjSelectChip(5,this)">$5</button>
           <button class="chip-btn c10" onclick="bjSelectChip(10,this)">$10</button>
           <button class="chip-btn c25" onclick="bjSelectChip(25,this)">$25</button>
@@ -747,14 +772,14 @@ function cPlaceOdds(type, comeNumber){
     cPassOdds+=cChip; cBankroll-=cChip;
     document.getElementById('cBankroll').textContent='$'+cBankroll;
     const stack=document.getElementById('cch-pass-odds');
-    const t=document.createElement('div');t.className=`chip-token c${cChip>25?100:cChip}`;t.textContent='$'+cChip;stack.appendChild(t);
+    const t=document.createElement('div');t.className=`chip-token c${cChip===1?1:cChip<=5?5:cChip<=10?10:cChip<=25?25:100}`;t.textContent='$'+cChip;stack.appendChild(t);
     cAddLog(`🎯 Pass Line Odds $${cPassOdds} on ${cPoint}. True odds — ${cOddsLabel(cPoint)} payout, ZERO house edge!`,'info');
   } else if(type==='dontpass'){
     if(!cBets['dontpass']||!cPoint){cAddLog("Need a Don't Pass bet and point to lay odds.",'info');return;}
     cDontPassOdds+=cChip; cBankroll-=cChip;
     document.getElementById('cBankroll').textContent='$'+cBankroll;
     const stack=document.getElementById('cch-dontpass-odds');
-    const t=document.createElement('div');t.className=`chip-token c${cChip>25?100:cChip}`;t.textContent='$'+cChip;stack.appendChild(t);
+    const t=document.createElement('div');t.className=`chip-token c${cChip===1?1:cChip<=5?5:cChip<=10?10:cChip<=25?25:100}`;t.textContent='$'+cChip;stack.appendChild(t);
     cAddLog(`🎯 Don't Pass Lay Odds $${cDontPassOdds} on ${cPoint}. Lays against ${cPoint} — zero house edge.`,'info');
   } else if(type==='come' && comeNumber){
     const cb=cComeBets.find(c=>c.number===comeNumber);
@@ -809,17 +834,17 @@ function cPlaceBet(key,el){
   if(key==='come'){
     cComeBets.push({amount:cChip, number:null});
     const stack=document.getElementById('cch-come');
-    if(stack){const t=document.createElement('div');t.className=`chip-token c${cChip>25?100:cChip}`;t.textContent='$'+cChip;stack.appendChild(t);}
+    if(stack){const t=document.createElement('div');t.className=`chip-token c${cChip===1?1:cChip<=5?5:cChip<=10?10:cChip<=25?25:100}`;t.textContent='$'+cChip;stack.appendChild(t);}
     cAddLog(`Placed $${cChip} on COME. Next roll is your come-out.`);
   } else if(key==='dontcome'){
     cDontComeBets.push({amount:cChip, number:null});
     const stack=document.getElementById('cch-dontcome');
-    if(stack){const t=document.createElement('div');t.className=`chip-token c${cChip>25?100:cChip}`;t.textContent='$'+cChip;stack.appendChild(t);}
+    if(stack){const t=document.createElement('div');t.className=`chip-token c${cChip===1?1:cChip<=5?5:cChip<=10?10:cChip<=25?25:100}`;t.textContent='$'+cChip;stack.appendChild(t);}
     cAddLog(`Placed $${cChip} on DON'T COME. Next roll is your come-out.`);
   } else {
     cBets[key]=(cBets[key]||0)+cChip;
     const stack=document.getElementById('cch-'+key);
-    if(stack){const t=document.createElement('div');t.className=`chip-token c${cChip>25?100:cChip}`;t.textContent='$'+cChip;stack.appendChild(t);}
+    if(stack){const t=document.createElement('div');t.className=`chip-token c${cChip===1?1:cChip<=5?5:cChip<=10?10:cChip<=25?25:100}`;t.textContent='$'+cChip;stack.appendChild(t);}
     // Show hint on first placement of removable bets
     const hint=REMOVABLE_BETS.includes(key)?' (tap again to remove)':'';
     cAddLog(`Placed $${cChip} on ${key.toUpperCase()}. Total: $${cBets[key]}.${hint}`);
@@ -884,6 +909,72 @@ function cUpdateWagered(){
   document.getElementById('cWagered').textContent='$'+(mainTotal+comeTotal+dcTotal+oddsTotal);
   cUpdateRemovableIndicators();
   cUpdateOddsButtons();
+  cUpdateWinProbabilities();
+}
+
+// ─── Win probabilities per bet (per resolution) ───
+// These are the chance the bet WINS (vs loses; pushes treated as no resolution)
+function cUpdateWinProbabilities(){
+  // Static per-resolution win probabilities (simplified, treating pushes as half-credit where relevant)
+  const probs={
+    pass:0.4929, dontpass:0.4793, come:0.4929, dontcome:0.4793,
+    place4:0.3333, place5:0.4000, place6:0.4545, place8:0.4545, place9:0.4000, place10:0.3333,
+    hard4:0.1111, hard6:0.0909, hard8:0.0909, hard10:0.1111,
+    big6:0.4545, big8:0.4545, field:0.4444,
+    any7:0.1667, yo11:0.0556, anycraps:0.1111
+  };
+  // House edge (negative = your loss per $ wagered)
+  const edges={
+    pass:0.0141, dontpass:0.0136, come:0.0141, dontcome:0.0136,
+    place4:0.0667, place5:0.0400, place6:0.0152, place8:0.0152, place9:0.0400, place10:0.0667,
+    hard4:0.1111, hard6:0.0909, hard8:0.0909, hard10:0.1111,
+    big6:0.0909, big8:0.0909, field:0.0556,
+    any7:0.1690, yo11:0.1110, anycraps:0.1110
+  };
+  
+  for(const [key, prob] of Object.entries(probs)){
+    const el=document.getElementById('wp-'+key); if(!el) continue;
+    let displayProb=prob;
+    let displayEdge=edges[key];
+    let oddsLabel='';
+    
+    // Adjust for odds on pass/come
+    if(key==='pass'&&cPassOdds>0&&cPoint){
+      // Combined edge: with odds, effective edge = passEdge / (1 + odds_multiplier)
+      // For pass + odds at point N: effective edge ≈ flat_edge × flat_amt / (flat_amt + odds_amt)
+      // Simpler: weighted avg of flat edge (1.41%) and odds edge (0%)
+      const flat=cBets['pass']||1;
+      const blendedEdge=(flat*0.0141)/(flat+cPassOdds);
+      displayEdge=blendedEdge;
+      oddsLabel=' (w/ odds)';
+    }
+    if(key==='dontpass'&&cDontPassOdds>0&&cPoint){
+      const flat=cBets['dontpass']||1;
+      const blendedEdge=(flat*0.0136)/(flat+cDontPassOdds);
+      displayEdge=blendedEdge;
+      oddsLabel=' (w/ odds)';
+    }
+    
+    const pct=(prob*100).toFixed(1);
+    const edgePct=(displayEdge*100).toFixed(2);
+    el.textContent=`Win: ${pct}% · Edge: ${edgePct}%${oddsLabel}`;
+    el.className='win-prob '+(displayEdge<0.02?'':displayEdge<0.05?'med':'low');
+  }
+  
+  // Come bets: adjust the place number boxes if there's a come bet on them
+  [4,5,6,8,9,10].forEach(num=>{
+    const cb=cComeBets.find(c=>c.number===num);
+    if(cb&&cb.odds>0){
+      const el=document.getElementById('wp-place'+num);
+      if(!el) return;
+      // Combined come + come odds edge
+      const flatProb=probs['place'+num];
+      const flatEdge=0.0141; // come bet flat edge
+      const blendedEdge=(cb.amount*flatEdge)/(cb.amount+cb.odds);
+      el.textContent=`Come on ${num}: Win ${(flatProb*100).toFixed(1)}% · Edge ${(blendedEdge*100).toFixed(2)}% (w/ odds)`;
+      el.className='win-prob';
+    }
+  });
 }
 
 function cUpdateRemovableIndicators(){
@@ -988,7 +1079,7 @@ function cRenderComeChips(){
     const stackId=cb.number?'cch-place'+cb.number:'cch-come';
     const stack=document.getElementById(stackId); if(!stack)return;
     const t=document.createElement('div');
-    t.className=`chip-token c${cb.amount>25?100:cb.amount}`;
+    t.className=`chip-token c${cb.amount===1?1:cb.amount<=5?5:cb.amount<=10?10:cb.amount<=25?25:100}`;
     t.textContent='$'+cb.amount;
     if(cb.number!==null){
       t.title='Tap to remove Come bet';
@@ -1002,9 +1093,10 @@ function cRenderComeChips(){
     if(cb.number!==null){
       const oddsStack=document.getElementById('cch-comeodds'+cb.number);
       if(oddsStack){
+        // Render single odds chip showing total amount (not one per dollar)
         if(cb.odds>0){
           const ot=document.createElement('div');
-          ot.className=`chip-token c${cb.odds>25?100:cb.odds}`;
+          ot.className=`chip-token c${cb.odds===1?1:cb.odds<=5?5:cb.odds<=10?10:cb.odds<=25?25:100}`;
           ot.style.outline='2px solid rgba(100,220,100,0.7)';
           ot.title='Come odds — tap to remove';
           ot.textContent='O$'+cb.odds;
@@ -1012,11 +1104,11 @@ function cRenderComeChips(){
           ot.onclick=(e)=>{e.stopPropagation();cRemoveComeOdds(cb.number);};
           oddsStack.appendChild(ot);
         }
-        // Show + ODDS button if in point phase
-        if(cPhase==='point'){
+        // Show + ODDS button ONCE per come bet (regardless of how many flat chips are on it)
+        if(cPhase==='point' && !oddsStack.querySelector('.come-odds-btn')){
           const btn=document.createElement('button');
           btn.className='come-odds-btn';
-          btn.textContent='+ODDS';
+          btn.textContent=cb.odds>0?'+more':'+ODDS';
           btn.title=`Add true-odds bet on ${cb.number} (${cOddsLabel(cb.number)}, zero edge)`;
           btn.onclick=(e)=>{e.stopPropagation();cPlaceOdds('come',cb.number);};
           oddsStack.appendChild(btn);
@@ -1030,7 +1122,7 @@ function cRenderComeChips(){
     const stackId=dc.number?'cch-place'+dc.number:'cch-dontcome';
     const stack=document.getElementById(stackId); if(!stack)return;
     const t=document.createElement('div');
-    t.className=`chip-token c${dc.amount>25?100:dc.amount}`;
+    t.className=`chip-token c${dc.amount===1?1:dc.amount<=5?5:dc.amount<=10?10:dc.amount<=25?25:100}`;
     t.textContent='DC';
     if(dc.number!==null){
       t.title="Tap to remove Don't Come bet";
@@ -1542,9 +1634,101 @@ function bjRenderHands(revealDealer=false){
     const pvEl=document.getElementById('bjPlayerValue');
     pvEl.innerHTML=bjPlayerCards.length?bjHandValueHTML(bjPlayerCards):'';
   }
+  bjUpdateWinProbs();
 }
 
 function bjActiveCards(){ return bjSplitting?(bjActiveHand===0?bjSplitHand1:bjSplitHand2):bjPlayerCards; }
+
+// ── Win probability calculator (Monte Carlo, ~600 sims per call) ──
+// Returns {standWin, hitWin, recommend} for a given player hand vs dealer upcard
+function bjCalcProbs(playerCards, dealerUpcard, sims=600){
+  const pTotal=bjHandTotal(playerCards);
+  if(pTotal>21) return {standWin:0,hitWin:0,recommend:'BUST'};
+  // Helper: random card with infinite-deck approximation (good for probability estimates)
+  const drawRandom=()=>{
+    const r=RANKS[Math.floor(Math.random()*13)];
+    return {rank:r, suit:'♠'};
+  };
+  const playDealer=(upcard)=>{
+    const d=[upcard, drawRandom()];
+    while(bjHandTotal(d)<17||(bjHandTotal(d)===17&&bjIsSoft(d))){
+      d.push(drawRandom());
+    }
+    return bjHandTotal(d);
+  };
+  // STAND probability: dealer plays out, compare totals
+  let standWins=0, standPushes=0;
+  for(let i=0;i<sims;i++){
+    const dv=playDealer(dealerUpcard);
+    if(dv>21) standWins++;
+    else if(pTotal>dv) standWins++;
+    else if(pTotal===dv) standPushes++;
+  }
+  const standWin=standWins/sims;
+  // HIT probability: take one card, then play basic strategy from new total, then dealer plays
+  let hitWins=0;
+  for(let i=0;i<sims;i++){
+    const newCards=[...playerCards, drawRandom()];
+    let v=bjHandTotal(newCards);
+    if(v>21){ continue; } // bust = lose
+    // Continue hitting per basic strategy: hit until 17+ on hard, S17 on soft
+    while(v<17||(v===17&&bjIsSoft(newCards)&&newCards.length>2)){
+      newCards.push(drawRandom());
+      v=bjHandTotal(newCards);
+      if(v>21) break;
+    }
+    if(v>21) continue; // bust
+    const dv=playDealer(dealerUpcard);
+    if(dv>21) hitWins++;
+    else if(v>dv) hitWins++;
+  }
+  const hitWin=hitWins/sims;
+  const recommend=hitWin>standWin+0.02?'HIT':standWin>hitWin+0.02?'STAND':'CLOSE';
+  return {standWin, hitWin, recommend};
+}
+
+function bjRenderProbBox(boxId, cards, dealerUpcard){
+  const box=document.getElementById(boxId);
+  if(!box) return;
+  if(!cards||cards.length<2||!dealerUpcard||bjHandTotal(cards)>=21){
+    box.style.display='none'; return;
+  }
+  const {standWin, hitWin, recommend}=bjCalcProbs(cards, dealerUpcard);
+  const sPct=(standWin*100).toFixed(0);
+  const hPct=(hitWin*100).toFixed(0);
+  const sClass=standWin>0.5?'':standWin>0.35?'med':'low';
+  const hClass=hitWin>0.5?'':hitWin>0.35?'med':'low';
+  box.innerHTML=`
+    <div class="prob-row"><span class="prob-label">Stand wins:</span><span class="prob-pct ${sClass}">${sPct}%</span></div>
+    <div class="prob-row"><span class="prob-label">Hit wins:</span><span class="prob-pct ${hClass}">${hPct}%</span></div>
+    <div class="recommend">📊 ${recommend==='CLOSE'?'~ Even — go w/ basic strategy':recommend==='HIT'?'➜ HIT favored':'➜ STAND favored'}</div>
+  `;
+  box.style.display='';
+}
+
+function bjUpdateWinProbs(){
+  if(!bjDealerCards||bjDealerCards.length===0||(bjPhase!=='playing'&&bjPhase!=='playing-split')){
+    document.getElementById('bjProbSingle').style.display='none';
+    document.getElementById('bjProb1').style.display='none';
+    document.getElementById('bjProb2').style.display='none';
+    return;
+  }
+  const upcard=bjDealerCards[0];
+  if(bjSplitting){
+    document.getElementById('bjProbSingle').style.display='none';
+    if(bjActiveHand===0){
+      bjRenderProbBox('bjProb1', bjSplitHand1, upcard);
+      document.getElementById('bjProb2').style.display='none';
+    } else {
+      document.getElementById('bjProb1').style.display='none';
+      bjRenderProbBox('bjProb2', bjSplitHand2, upcard);
+    }
+  } else {
+    document.getElementById('bjProb1').style.display='none';
+    document.getElementById('bjProb2').style.display='none';
+    bjRenderProbBox('bjProbSingle', bjPlayerCards, upcard);
+  }
+}
 
 function bjSelectChip(v,btn){
   bjChip=v;
@@ -1569,7 +1753,7 @@ function bjPlaceBet(){
   document.getElementById('bjBetAmt').textContent='$'+bjBet;
   document.getElementById('bjBetLabel').style.display='none';
   const stack=document.getElementById('bjBetChips');
-  const t=document.createElement('div'); t.className=`chip-token c${bjChip>25?100:bjChip}`; t.textContent='$'+bjChip;
+  const t=document.createElement('div'); t.className=`chip-token c${bjChip===1?1:bjChip<=5?5:bjChip<=10?10:bjChip<=25?25:100}`; t.textContent='$'+bjChip;
   stack.appendChild(t);
   bjBjLog(`Placed $${bjChip}. Total bet: $${bjBet}.`);
   bjUpdateStrategy();
