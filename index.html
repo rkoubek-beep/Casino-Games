@@ -101,6 +101,17 @@ header p{font-size:1.5rem;color:var(--ivory-dim);font-style:italic;margin-top:0.
 .bet-zone.zone-won{background:#122b12!important;border-color:#4caf50!important;box-shadow:0 0 10px rgba(76,175,80,0.35)!important}
 .bet-zone.zone-lost{background:#2b1212!important;border-color:#e53935!important;box-shadow:0 0 10px rgba(229,57,53,0.35)!important}
 @keyframes pulse{0%,100%{box-shadow:0 0 8px rgba(201,168,76,0.4)}50%{box-shadow:0 0 22px rgba(201,168,76,0.9)}}
+.odds-btn{background:rgba(201,168,76,0.18);border:1px solid rgba(201,168,76,0.5);
+  color:var(--gold-light);font-family:'Playfair Display',serif;font-size:0.6rem;
+  font-weight:700;letter-spacing:0.08em;padding:2px 6px;border-radius:10px;
+  cursor:pointer;margin-top:3px;white-space:nowrap;}
+.odds-btn:hover{background:rgba(201,168,76,0.35);border-color:var(--gold-light);}
+.come-odds-stack{border-top:1px dashed rgba(201,168,76,0.25);margin-top:2px;padding-top:2px;min-height:0;}
+.come-odds-btn{background:rgba(100,200,100,0.15);border:1px solid rgba(100,200,100,0.4);
+  color:#8fda8f;font-family:'Playfair Display',serif;font-size:0.55rem;font-weight:700;
+  letter-spacing:0.06em;padding:2px 5px;border-radius:8px;cursor:pointer;margin-top:2px;
+  display:block;width:100%;}
+.come-odds-btn:hover{background:rgba(100,200,100,0.3);}
 .bet-zone.removable::after{content:'✕';position:absolute;top:2px;right:4px;
   font-size:0.6rem;color:rgba(255,180,60,0.7);pointer-events:none;}
 .bet-label{font-size:clamp(0.7rem,1.6vw,1rem);color:var(--ivory);letter-spacing:0.06em;text-transform:uppercase;line-height:1.2}
@@ -393,12 +404,16 @@ footer{text-align:center;padding:2rem;color:rgba(245,240,225,0.22);font-size:1re
           <span class="bet-label large">PASS LINE</span>
           <span class="bet-label odds">Pays 1:1 · Edge 1.41%</span>
           <div class="chip-stack" id="cch-pass"></div>
+          <button class="odds-btn" id="odds-pass-btn" onclick="event.stopPropagation();cPlaceOdds('pass')" style="display:none">+ ODDS</button>
+          <div class="chip-stack" id="cch-pass-odds" style="border-top:1px dashed rgba(201,168,76,0.3);margin-top:2px;padding-top:2px"></div>
           <div class="puck off" id="puck">OFF</div>
         </div>
         <div class="bet-zone" id="cz-dontpass" onclick="cPlaceBet('dontpass',this)">
           <span class="bet-label">DON'T PASS BAR ⚄⚄</span>
           <span class="bet-label odds">Edge 1.36%</span>
           <div class="chip-stack" id="cch-dontpass"></div>
+          <button class="odds-btn" id="odds-dontpass-btn" onclick="event.stopPropagation();cPlaceOdds('dontpass')" style="display:none">+ LAY ODDS</button>
+          <div class="chip-stack" id="cch-dontpass-odds" style="border-top:1px dashed rgba(201,168,76,0.3);margin-top:2px;padding-top:2px"></div>
         </div>
         <div class="bet-zone" id="cz-come" onclick="cPlaceBet('come',this)">
           <span class="bet-label large">COME</span>
@@ -411,12 +426,12 @@ footer{text-align:center;padding:2rem;color:rgba(245,240,225,0.22);font-size:1re
         </div>
       </div>
       <div class="row-numbers">
-        <div class="bet-zone" id="cz-place4" onclick="cPlaceBet('place4',this)"><span class="number-label">4</span><span class="bet-label odds">9:5 · Edge 6.7%</span><div class="chip-stack" id="cch-place4"></div></div>
-        <div class="bet-zone" id="cz-place5" onclick="cPlaceBet('place5',this)"><span class="number-label">5</span><span class="bet-label odds">7:5 · Edge 4.0%</span><div class="chip-stack" id="cch-place5"></div></div>
-        <div class="bet-zone" id="cz-place6" onclick="cPlaceBet('place6',this)"><span class="number-label">6</span><span class="bet-label odds">7:6 · Edge 1.5%</span><div class="chip-stack" id="cch-place6"></div></div>
-        <div class="bet-zone" id="cz-place8" onclick="cPlaceBet('place8',this)"><span class="number-label">8</span><span class="bet-label odds">7:6 · Edge 1.5%</span><div class="chip-stack" id="cch-place8"></div></div>
-        <div class="bet-zone" id="cz-place9" onclick="cPlaceBet('place9',this)"><span class="number-label">9</span><span class="bet-label odds">7:5 · Edge 4.0%</span><div class="chip-stack" id="cch-place9"></div></div>
-        <div class="bet-zone" id="cz-place10" onclick="cPlaceBet('place10',this)"><span class="number-label">10</span><span class="bet-label odds">9:5 · Edge 6.7%</span><div class="chip-stack" id="cch-place10"></div></div>
+        <div class="bet-zone" id="cz-place4" onclick="cPlaceBet('place4',this)"><span class="number-label">4</span><span class="bet-label odds">9:5 · Edge 6.7%</span><div class="chip-stack" id="cch-place4"></div><div class="chip-stack come-odds-stack" id="cch-comeodds4"></div></div>
+        <div class="bet-zone" id="cz-place5" onclick="cPlaceBet('place5',this)"><span class="number-label">5</span><span class="bet-label odds">7:5 · Edge 4.0%</span><div class="chip-stack" id="cch-place5"></div><div class="chip-stack come-odds-stack" id="cch-comeodds5"></div></div>
+        <div class="bet-zone" id="cz-place6" onclick="cPlaceBet('place6',this)"><span class="number-label">6</span><span class="bet-label odds">7:6 · Edge 1.5%</span><div class="chip-stack" id="cch-place6"></div><div class="chip-stack come-odds-stack" id="cch-comeodds6"></div></div>
+        <div class="bet-zone" id="cz-place8" onclick="cPlaceBet('place8',this)"><span class="number-label">8</span><span class="bet-label odds">7:6 · Edge 1.5%</span><div class="chip-stack" id="cch-place8"></div><div class="chip-stack come-odds-stack" id="cch-comeodds8"></div></div>
+        <div class="bet-zone" id="cz-place9" onclick="cPlaceBet('place9',this)"><span class="number-label">9</span><span class="bet-label odds">7:5 · Edge 4.0%</span><div class="chip-stack" id="cch-place9"></div><div class="chip-stack come-odds-stack" id="cch-comeodds9"></div></div>
+        <div class="bet-zone" id="cz-place10" onclick="cPlaceBet('place10',this)"><span class="number-label">10</span><span class="bet-label odds">9:5 · Edge 6.7%</span><div class="chip-stack" id="cch-place10"></div><div class="chip-stack come-odds-stack" id="cch-comeodds10"></div></div>
       </div>
       <div class="row-field-place">
         <div class="bet-zone" id="cz-field" onclick="cPlaceBet('field',this)" style="min-height:60px">
@@ -701,9 +716,11 @@ function switchGame(game, btn){
 */
 const PIP_MAP={1:[5],2:[1,9],3:[1,5,9],4:[1,3,7,9],5:[1,3,5,7,9],6:[1,3,4,6,7,9]};
 let cBankroll=500, cChip=5, cBets={}, cPoint=null, cPhase='comeout';
-let cComeBets=[];      // [{amount, number}]  number=null = waiting for assignment
-let cDontComeBets=[];  // [{amount, number}]
-let cRollHadResolution=false; // true when at least one bet won/lost this roll
+let cComeBets=[];      // [{amount, number, odds}]  number=null = waiting, odds=0
+let cDontComeBets=[];  // [{amount, number, odds}]
+let cPassOdds=0;       // pass line odds bet amount
+let cDontPassOdds=0;   // dont pass lay odds amount
+let cRollHadResolution=false;
 
 function setDieFace(n,v){
   for(let i=1;i<=9;i++) document.getElementById(`d${n}p${i}`).classList.toggle('show',PIP_MAP[v].includes(i));
@@ -719,7 +736,48 @@ function cClearResultColours(){
   document.querySelectorAll('.bet-zone').forEach(z=>z.classList.remove('zone-won','zone-lost'));
 }
 
-// Real casino rules for bet removal:
+// True odds payouts (zero house edge): 4/10=2:1, 5/9=3:2, 6/8=6:5
+function cOddsMultiplier(num){ return {4:2,5:1.5,6:1.2,8:1.2,9:1.5,10:2}[num]||1; }
+function cOddsLabel(num){ return {4:'2:1',5:'3:2',6:'6:5',8:'6:5',9:'3:2',10:'2:1'}[num]||'1:1'; }
+
+function cPlaceOdds(type, comeNumber){
+  if(cBankroll<cChip){cAddLog('Not enough funds!','lose');return;}
+  if(type==='pass'){
+    if(!cBets['pass']||!cPoint){cAddLog('Need a Pass Line bet and point to place odds.','info');return;}
+    cPassOdds+=cChip; cBankroll-=cChip;
+    document.getElementById('cBankroll').textContent='$'+cBankroll;
+    const stack=document.getElementById('cch-pass-odds');
+    const t=document.createElement('div');t.className=`chip-token c${cChip>25?100:cChip}`;t.textContent='$'+cChip;stack.appendChild(t);
+    cAddLog(`🎯 Pass Line Odds $${cPassOdds} on ${cPoint}. True odds — ${cOddsLabel(cPoint)} payout, ZERO house edge!`,'info');
+  } else if(type==='dontpass'){
+    if(!cBets['dontpass']||!cPoint){cAddLog("Need a Don't Pass bet and point to lay odds.",'info');return;}
+    cDontPassOdds+=cChip; cBankroll-=cChip;
+    document.getElementById('cBankroll').textContent='$'+cBankroll;
+    const stack=document.getElementById('cch-dontpass-odds');
+    const t=document.createElement('div');t.className=`chip-token c${cChip>25?100:cChip}`;t.textContent='$'+cChip;stack.appendChild(t);
+    cAddLog(`🎯 Don't Pass Lay Odds $${cDontPassOdds} on ${cPoint}. Lays against ${cPoint} — zero house edge.`,'info');
+  } else if(type==='come' && comeNumber){
+    const cb=cComeBets.find(c=>c.number===comeNumber);
+    if(!cb){cAddLog('No Come bet on '+comeNumber+' to add odds to.','info');return;}
+    cb.odds=(cb.odds||0)+cChip; cBankroll-=cChip;
+    document.getElementById('cBankroll').textContent='$'+cBankroll;
+    cRenderComeChips();
+    cAddLog(`🎯 Come Odds $${cb.odds} on ${comeNumber}. True odds — ${cOddsLabel(comeNumber)} payout, zero house edge!`,'info');
+  }
+  cUpdateWagered(); cUpdateOddsButtons();
+}
+
+function cUpdateOddsButtons(){
+  // Show/hide Pass Odds button
+  const showPass=cPhase==='point'&&!!cBets['pass'];
+  const passBtn=document.getElementById('odds-pass-btn');
+  if(passBtn) passBtn.style.display=showPass?'':'none';
+  // Show/hide Don't Pass Odds button
+  const showDP=cPhase==='point'&&!!cBets['dontpass'];
+  const dpBtn=document.getElementById('odds-dontpass-btn');
+  if(dpBtn) dpBtn.style.display=showDP?'':'none';
+  // Come odds buttons rendered inside cRenderComeChips
+}
 // REMOVABLE any time: Place bets, Hard ways, Big 6/8, Come bets established on a number, DC on a number
 // NOT removable once point set: Pass Line, Don't Pass
 // NOT removable: Come/DC waiting in box (they've been action'd as come-out)
@@ -796,6 +854,16 @@ function cRemoveComeOnNumber(num){
   cUpdateWagered(); cUpdateStrategy();
 }
 
+function cRemoveComeOdds(num){
+  const cb=cComeBets.find(c=>c.number===num);
+  if(!cb||!cb.odds){cAddLog('No Come odds on '+num,'info');return;}
+  cBankroll+=cb.odds;
+  document.getElementById('cBankroll').textContent='$'+cBankroll;
+  cAddLog(`↩ Come odds on ${num} removed — $${cb.odds} returned.`,'info');
+  cb.odds=0;
+  cRenderComeChips(); cUpdateWagered();
+}
+
 function cRemoveDCOnNumber(num){
   const idx=cDontComeBets.findIndex(dc=>dc.number===num);
   if(idx===-1){cAddLog("No Don't Come bet on "+num+' to remove.','info');return;}
@@ -810,10 +878,12 @@ function cRemoveDCOnNumber(num){
 
 function cUpdateWagered(){
   const mainTotal=Object.values(cBets).reduce((a,b)=>a+b,0);
-  const comeTotal=cComeBets.reduce((a,b)=>a+b.amount,0);
-  const dcTotal=cDontComeBets.reduce((a,b)=>a+b.amount,0);
-  document.getElementById('cWagered').textContent='$'+(mainTotal+comeTotal+dcTotal);
+  const comeTotal=cComeBets.reduce((a,b)=>a+b.amount+(b.odds||0),0);
+  const dcTotal=cDontComeBets.reduce((a,b)=>a+b.amount+(b.odds||0),0);
+  const oddsTotal=cPassOdds+cDontPassOdds;
+  document.getElementById('cWagered').textContent='$'+(mainTotal+comeTotal+dcTotal+oddsTotal);
   cUpdateRemovableIndicators();
+  cUpdateOddsButtons();
 }
 
 function cUpdateRemovableIndicators(){
@@ -840,6 +910,7 @@ function cSnapshotBets(){
   cBetsSnapshot=Object.assign({},cBets);
   cComeBetsSnapshot=cComeBets.map(c=>Object.assign({},c));
   cDontComeBetsSnapshot=cDontComeBets.map(dc=>Object.assign({},dc));
+  // Note: pass odds are always removable so no snapshot needed — they're always "new"
 }
 
 function cClearBets(){
@@ -864,6 +935,10 @@ function cClearBets(){
   const dcToRemove=cDontComeBets.filter(dc=>dc.number===null);
   dcToRemove.forEach(dc=>{ refund+=dc.amount; });
   cDontComeBets=cDontComeBets.filter(dc=>dc.number!==null);
+
+  // Pass/Don't Pass odds are always removable — refund them fully
+  if(cPassOdds>0){ refund+=cPassOdds; cPassOdds=0; document.getElementById('cch-pass-odds').innerHTML=''; }
+  if(cDontPassOdds>0){ refund+=cDontPassOdds; cDontPassOdds=0; document.getElementById('cch-dontpass-odds').innerHTML=''; }
 
   // Refund the player
   cBankroll+=refund;
@@ -904,11 +979,11 @@ function cFlash(id,type){ cMarkZone(id,type); }
 function cRenderComeChips(){
   // Collect all zone IDs that need clearing
   const zonesToClear=new Set(['cch-come','cch-dontcome']);
-  cComeBets.forEach(cb=>{ if(cb.number) zonesToClear.add('cch-place'+cb.number); });
-  cDontComeBets.forEach(dc=>{ if(dc.number) zonesToClear.add('cch-place'+dc.number); });
+  cComeBets.forEach(cb=>{ if(cb.number){ zonesToClear.add('cch-place'+cb.number); zonesToClear.add('cch-comeodds'+cb.number); } });
+  cDontComeBets.forEach(dc=>{ if(dc.number){ zonesToClear.add('cch-place'+dc.number); zonesToClear.add('cch-comeodds'+dc.number); } });
   zonesToClear.forEach(id=>{ const el=document.getElementById(id); if(el) el.innerHTML=''; });
 
-  // Re-render come bet chips — established ones get a tap-to-remove handler
+  // Re-render come bet chips — established ones get tap-to-remove and odds button
   cComeBets.forEach(cb=>{
     const stackId=cb.number?'cch-place'+cb.number:'cch-come';
     const stack=document.getElementById(stackId); if(!stack)return;
@@ -922,9 +997,35 @@ function cRenderComeChips(){
       t.onclick=(e)=>{ e.stopPropagation(); cRemoveComeOnNumber(cb.number); };
     }
     stack.appendChild(t);
+
+    // Render come odds chips in the odds sub-stack
+    if(cb.number!==null){
+      const oddsStack=document.getElementById('cch-comeodds'+cb.number);
+      if(oddsStack){
+        if(cb.odds>0){
+          const ot=document.createElement('div');
+          ot.className=`chip-token c${cb.odds>25?100:cb.odds}`;
+          ot.style.outline='2px solid rgba(100,220,100,0.7)';
+          ot.title='Come odds — tap to remove';
+          ot.textContent='O$'+cb.odds;
+          ot.style.cursor='pointer';
+          ot.onclick=(e)=>{e.stopPropagation();cRemoveComeOdds(cb.number);};
+          oddsStack.appendChild(ot);
+        }
+        // Show + ODDS button if in point phase
+        if(cPhase==='point'){
+          const btn=document.createElement('button');
+          btn.className='come-odds-btn';
+          btn.textContent='+ODDS';
+          btn.title=`Add true-odds bet on ${cb.number} (${cOddsLabel(cb.number)}, zero edge)`;
+          btn.onclick=(e)=>{e.stopPropagation();cPlaceOdds('come',cb.number);};
+          oddsStack.appendChild(btn);
+        }
+      }
+    }
   });
 
-  // Re-render DC chips — established ones get a tap-to-remove handler
+  // Re-render DC chips
   cDontComeBets.forEach(dc=>{
     const stackId=dc.number?'cch-place'+dc.number:'cch-dontcome';
     const stack=document.getElementById(stackId); if(!stack)return;
@@ -1038,8 +1139,9 @@ function cRollDice(){
     document.getElementById('cRollTotal').textContent=t;
     const bankBefore=cBankroll;
     const totalStaked=Object.values(cBets).reduce((a,b)=>a+b,0)
-      +cComeBets.reduce((a,c)=>a+c.amount,0)
-      +cDontComeBets.reduce((a,c)=>a+c.amount,0);
+      +cComeBets.reduce((a,c)=>a+c.amount+(c.odds||0),0)
+      +cDontComeBets.reduce((a,c)=>a+c.amount+(c.odds||0),0)
+      +cPassOdds+cDontPassOdds;
     cResolveBets(d1,d2,t);
     const bankAfter=cBankroll;
     // Show popup only when bets actually resolved (flag set inside cResolveBets)
@@ -1092,6 +1194,7 @@ function cResolveBets(d1,d2,t){
       outEl.textContent=`Point is ${t} — Roll again!`; outEl.classList.add('point-set');
       cAddLog(`📍 Point set: ${t}. Pass Line locked in. Roll ${t} before 7 to win even money.`,'point');
       cMovePuck(t);
+      cUpdateOddsButtons();
       net+=cResolveOneRolls(t,d1,d2);
       cApplyNet(net);
     }
@@ -1115,6 +1218,7 @@ function cResolveBets(d1,d2,t){
       establishedCome.filter(c=>c.number===t).forEach(cb=>{
         net+=cb.amount*2; cMarkZone('cz-place'+t,'win');
         cAddLog(`🎉 Come on ${t} wins! $${cb.amount} bet → +$${cb.amount} profit (1:1, pays same as Pass Line).`,'win');
+        if(cb.odds){ const co=Math.floor(cb.odds*cOddsMultiplier(t)); net+=cb.odds+co; cAddLog(`✅ Come Odds on ${t}: $${cb.odds} wins $${co} at ${cOddsLabel(t)} true odds.`,'win'); }
         cRollHadResolution=true;
       });
       cComeBets = cComeBets.filter(c=>!(c.number===t));
@@ -1175,12 +1279,15 @@ function cResolveBets(d1,d2,t){
       outEl.textContent=`Seven-Out! Pass Line loses.`; outEl.classList.add('seven-out');
       cAddLog(`🔥 Seven-out! 7 appeared — all Pass/Come/Place bets lose.`,'lose');
       if(cBets['pass'])    { cMarkZone('cz-pass','lose'); cAddLog(`💀 Pass Line $${cBets['pass']} loses — 7 before point ${cPoint} (seven-out).`,'lose'); }
+      if(cPassOdds)        { cAddLog(`💀 Pass Odds $${cPassOdds} loses on seven-out.`,'lose'); }
       if(cBets['dontpass']){ net+=cBets['dontpass']*2; cMarkZone('cz-dontpass','win'); cAddLog(`✅ Don't Pass $${cBets['dontpass']} wins $${cBets['dontpass']} → +$${cBets['dontpass']} profit (7 before point = DP win).`,'win'); }
+      if(cDontPassOdds)   { const dpOddsWin=Math.floor(cDontPassOdds/cOddsMultiplier(cPoint)); net+=cDontPassOdds+dpOddsWin; cAddLog(`✅ Don't Pass Lay Odds $${cDontPassOdds} wins $${dpOddsWin} at ${cOddsLabel(cPoint)} (7 before ${cPoint}).`,'win'); }
 
       // Remaining established come bets (those that didn't just travel) lose
       cComeBets.filter(c=>c.number!==null).forEach(cb=>{
         cMarkZone('cz-place'+cb.number,'lose');
         cAddLog(`💀 Come on ${cb.number}: $${cb.amount} loses — 7 rolled before ${cb.number} (seven-out kills all Come bets).`,'lose');
+        if(cb.odds) cAddLog(`💀 Come Odds on ${cb.number}: $${cb.odds} also loses on seven-out.`,'lose');
       });
       // Remaining established DC bets win
       cDontComeBets.filter(dc=>dc.number!==null).forEach(dc=>{
@@ -1196,8 +1303,10 @@ function cResolveBets(d1,d2,t){
       net+=cResolveOneRolls(t,d1,d2);
       cApplyNet(net);
       cResetPuck();
-      cBets={}; cComeBets=[]; cDontComeBets=[];
+      cBets={}; cComeBets=[]; cDontComeBets=[]; cPassOdds=0; cDontPassOdds=0;
       document.querySelectorAll('[id^="cch-"]').forEach(s=>s.innerHTML='');
+      document.getElementById('cch-pass-odds').innerHTML='';
+      document.getElementById('cch-dontpass-odds').innerHTML='';
       cPoint=null; cPhase='comeout';
       cAddLog('🔄 New Come-Out roll. Place Pass/Don\'t Pass to start a new round.','info');
 
@@ -1207,7 +1316,9 @@ function cResolveBets(d1,d2,t){
       outEl.textContent=`Point ${cPoint} hit — Pass Line wins!`; outEl.classList.add('point-win');
       cAddLog(`✅ Point ${cPoint} made! Pass Line wins.`,'win');
       if(cBets['pass']){net+=cBets['pass']*2; cMarkZone('cz-pass','win'); cAddLog(`✅ Pass Line $${cBets['pass']} wins $${cBets['pass']} → +$${cBets['pass']} profit (point ${cPoint} made, pays 1:1).`,'win');}
+      if(cPassOdds){ const oddsWin=Math.floor(cPassOdds*cOddsMultiplier(cPoint)); net+=cPassOdds+oddsWin; cAddLog(`✅ Pass Odds $${cPassOdds} wins $${oddsWin} at ${cOddsLabel(cPoint)} true odds (zero house edge!).`,'win'); }
       if(cBets['dontpass']){ cMarkZone('cz-dontpass','lose'); cAddLog(`💀 Don't Pass $${cBets['dontpass']} loses — point ${cPoint} made before 7.`,'lose'); }
+      if(cDontPassOdds){ cAddLog(`💀 Don't Pass Lay Odds $${cDontPassOdds} loses — point made.`,'lose'); }
 
       // NOTE: Step 1 already paid & removed established come bets whose number===cPoint.
       // We log a reminder if any were paid.
@@ -1216,6 +1327,7 @@ function cResolveBets(d1,d2,t){
       comeOnPoint.forEach(cb=>{
         net+=cb.amount*2; cMarkZone('cz-place'+cPoint,'win');
         cAddLog(`🎉 Come on ${cPoint}: $${cb.amount} wins $${cb.amount} → +$${cb.amount} profit (${cPoint} hit = Come wins 1:1).`,'win');
+        if(cb.odds){ const co=Math.floor(cb.odds*cOddsMultiplier(cPoint)); net+=cb.odds+co; cAddLog(`✅ Come Odds on ${cPoint}: $${cb.odds} wins $${co} at ${cOddsLabel(cPoint)} true odds.`,'win'); }
       });
       cComeBets = cComeBets.filter(c=>c.number!==cPoint);
 
@@ -1234,8 +1346,10 @@ function cResolveBets(d1,d2,t){
       // Keep come bets on OTHER numbers active — only clear main bets and waiting come bets
       cComeBets = cComeBets.filter(c=>c.number!==null);
       cDontComeBets = cDontComeBets.filter(dc=>dc.number!==null);
-      cBets={};
+      cBets={}; cPassOdds=0; cDontPassOdds=0;
       document.querySelectorAll('[id^="cch-"]').forEach(s=>s.innerHTML='');
+      document.getElementById('cch-pass-odds').innerHTML='';
+      document.getElementById('cch-dontpass-odds').innerHTML='';
       cRenderComeChips();
       cPoint=null; cPhase='comeout';
       cUpdateWagered();
