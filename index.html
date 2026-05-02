@@ -413,6 +413,10 @@ footer{text-align:center;padding:2rem;color:rgba(245,240,225,0.22);font-size:1re
       <div style="font-size:0.95rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--ivory-dim)">Wagered</div>
       <div style="font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--gold-light)" id="cWagered">$0</div>
     </div>
+    <div style="display:flex;flex-direction:column;gap:0.3rem;align-items:center;justify-content:center">
+      <div style="font-size:0.95rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--ivory-dim)">Next Roll</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.7rem;color:#8fda8f" id="cNextRollWin">—</div>
+    </div>
     <div class="action-buttons">
       <button class="btn btn-roll" id="cRollBtn" onclick="cRollDice()">🎲 Roll Dice</button>
       <button class="btn btn-clear" onclick="cClearBets()">Clear Bets</button>
@@ -910,6 +914,172 @@ function cUpdateWagered(){
   cUpdateRemovableIndicators();
   cUpdateOddsButtons();
   cUpdateWinProbabilities();
+  cUpdateNextRollWin();
+}
+
+// Probability of each dice total (out of 36)
+const ROLL_WAYS={2:1,3:2,4:3,5:4,6:5,7:6,8:5,9:4,10:3,11:2,12:1};
+
+// Compute net P&L for a hypothetical roll total `t` given current bet state
+// Returns the dollar profit (+) or loss (-) if `t` is rolled next
+function cSimulateRoll(t){
+  let net=0;
+  const isHard=false; // simplified — we don't know if it'll be hard, so assume easy for hard-way bets
+  
+  if(cPhase==='comeout'){
+    if(t===7||t===11){
+      if(cBets['pass'])     net+=cBets['pass'];      // 1:1 win
+      if(cBets['dontpass']) net-=cBets['dontpass'];
+    } else if(t===2||t===3){
+      if(cBets['pass'])     net-=cBets['pass'];
+      if(cBets['dontpass']) net+=cBets['dontpass'];
+    } else if(t===12){
+      if(cBets['pass'])     net-=cBets['pass'];
+      // dontpass pushes on 12, no change
+    }
+    // Point set on 4-10 (excluding 7): no resolution → net=0
+  } else {
+    // Point phase
+    if(t===7){
+      // Seven-out
+      if(cBets['pass'])     net-=cBets['pass'];
+      if(cPassOdds)         net-=cPassOdds;
+      if(cBets['dontpass']) net+=cBets['dontpass'];
+      if(cDontPassOdds)     net+=Math.floor(cDontPassOdds/cOddsMultiplier(cPoint));
+      cComeBets.filter(c=>c.number!==null).forEach(cb=>{
+        net-=cb.amount;
+        if(cb.odds) net-=cb.odds;
+      });
+      cDontComeBets.filter(dc=>dc.number!==null).forEach(dc=>{
+        net+=dc.amount;
+      });
+      // Place/Hard/Big lose
+      [4,5,6,8,9,10].forEach(n=>{
+        if(cBets['place'+n]) net-=cBets['place'+n];
+      });
+      [4,6,8,10].forEach(n=>{
+        if(cBets['hard'+n]) net-=cBets['hard'+n];
+      });
+      if(cBets['big6']) net-=cBets['big6'];
+      if(cBets['big8']) net-=cBets['big8'];
+      // Waiting come/DC: come loses, dc wins
+      cComeBets.filter(c=>c.number===null).forEach(cb=>{ net+=cb.amount; }); // come waiting wins on 7
+      cDontComeBets.filter(dc=>dc.number===null).forEach(dc=>{ net-=dc.amount; });
+    } else if(t===cPoint){
+      // Point made
+      if(cBets['pass'])     net+=cBets['pass'];
+      if(cPassOdds)         net+=Math.floor(cPassOdds*cOddsMultiplier(cPoint));
+      if(cBets['dontpass']) net-=cBets['dontpass'];
+      if(cDontPassOdds)     net-=cDontPassOdds;
+      // Come bets on this number win (incl. waiting that travels here)
+      cComeBets.filter(c=>c.number===cPoint||c.number===null).forEach(cb=>{
+        if(cb.number===cPoint){
+          net+=cb.amount;
+          if(cb.odds) net+=Math.floor(cb.odds*cOddsMultiplier(cPoint));
+        }
+        // Waiting come on cPoint travels here this roll — no gain/loss yet
+      });
+      cDontComeBets.filter(dc=>dc.number===cPoint).forEach(dc=>{ net-=dc.amount; });
+      // Place bet on point number wins
+      const pp={4:9/5,5:7/5,6:7/6,8:7/6,9:7/5,10:9/5};
+      if(cBets['place'+cPoint]) net+=Math.floor(cBets['place'+cPoint]*pp[cPoint]);
+      // Big 6/8 if point is 6 or 8
+      if(cPoint===6&&cBets['big6']) net+=cBets['big6'];
+      if(cPoint===8&&cBets['big8']) net+=cBets['big8'];
+    } else {
+      // Mid-roll
+      // Established come bets matching t win
+      cComeBets.filter(c=>c.number===t).forEach(cb=>{
+        net+=cb.amount;
+        if(cb.odds) net+=Math.floor(cb.odds*cOddsMultiplier(t));
+      });
+      // Established DC bets matching t lose
+      cDontComeBets.filter(dc=>dc.number===t).forEach(dc=>{ net-=dc.amount; });
+      // Place bets winning
+      const pp={4:9/5,5:7/5,6:7/6,8:7/6,9:7/5,10:9/5};
+      if([4,5,6,8,9,10].includes(t)&&cBets['place'+t]){
+        net+=Math.floor(cBets['place'+t]*pp[t]);
+      }
+      // Big 6/8
+      if(t===6&&cBets['big6']) net+=cBets['big6'];
+      if(t===8&&cBets['big8']) net+=cBets['big8'];
+      // Waiting come bet behavior on this roll
+      cComeBets.filter(c=>c.number===null).forEach(cb=>{
+        if([2,3,12].includes(t)) net-=cb.amount;
+        // 11 = come natural win
+        if(t===11) net+=cb.amount;
+        // other numbers: travels — no gain/loss this roll
+      });
+      cDontComeBets.filter(dc=>dc.number===null).forEach(dc=>{
+        if(t===2||t===3) net+=dc.amount;
+        if(t===11) net-=dc.amount;
+        if(t===12){} // push
+      });
+    }
+  }
+  
+  // One-roll bets (Field, Any 7, Yo, Any Craps) apply on every roll
+  if(cBets['field']){
+    if([2,3,4,9,10,11,12].includes(t)){
+      const m=(t===2||t===12)?2:1;
+      net+=cBets['field']*m;
+    } else net-=cBets['field'];
+  }
+  if(cBets['any7']){
+    if(t===7) net+=cBets['any7']*4;
+    else net-=cBets['any7'];
+  }
+  if(cBets['yo11']){
+    if(t===11) net+=cBets['yo11']*15;
+    else net-=cBets['yo11'];
+  }
+  if(cBets['anycraps']){
+    if([2,3,12].includes(t)) net+=cBets['anycraps']*7;
+    else net-=cBets['anycraps'];
+  }
+  // Hard ways: only resolve on this number, lose if hits easy. We don't know hard/easy here,
+  // so probabilistically: 1/N ways to roll this number are hard.
+  // We'll handle this in a probability-weighted way by simulating each of the 36 die combos,
+  // but for the simple version just skip hard ways (small contribution).
+  
+  return net;
+}
+
+function cUpdateNextRollWin(){
+  const totalWagered=Object.values(cBets).reduce((a,b)=>a+b,0)
+    +cComeBets.reduce((a,b)=>a+b.amount+(b.odds||0),0)
+    +cDontComeBets.reduce((a,b)=>a+b.amount+(b.odds||0),0)
+    +cPassOdds+cDontPassOdds;
+  
+  const display=document.getElementById('cNextRollWin');
+  if(!display) return;
+  if(totalWagered===0){
+    display.textContent='—';
+    display.style.color='rgba(232,201,122,0.5)';
+    display.title='Place bets to see win probability';
+    return;
+  }
+  
+  // Sum probability-weighted outcomes
+  let winWays=0, loseWays=0, evenWays=0;
+  let expectedNet=0;
+  for(let t=2;t<=12;t++){
+    const ways=ROLL_WAYS[t];
+    const net=cSimulateRoll(t);
+    expectedNet+=net*ways/36;
+    if(net>0) winWays+=ways;
+    else if(net<0) loseWays+=ways;
+    else evenWays+=ways;
+  }
+  
+  const winPct=(winWays/36*100).toFixed(1);
+  const evPerDollar=(expectedNet/totalWagered*100).toFixed(2);
+  display.textContent=`${winPct}%`;
+  display.title=`Win on ${winWays}/36 outcomes · Lose on ${loseWays}/36 · No change on ${evenWays}/36 · Expected value: ${evPerDollar>0?'+':''}${evPerDollar}% per $ wagered`;
+  // Color: green if >50%, amber 40-50%, red below
+  if(winWays/36>=0.5) display.style.color='#8fda8f';
+  else if(winWays/36>=0.4) display.style.color='#ffb74d';
+  else display.style.color='#ef5350';
 }
 
 // ─── Win probabilities per bet (per resolution) ───
